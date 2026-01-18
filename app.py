@@ -687,7 +687,7 @@ def start_mqtt_client(data_source_id, broker_url, topics, username=None, passwor
 def initialize_mqtt_clients():
     import threading
 
-    logging.info("[MQTT-INIT] Starting MQTT client initialization...")
+    logging.info("[MQTT-INIT] 🚀 Starting MQTT client initialization...")
 
     try:
         conn = get_db_connection()
@@ -699,15 +699,15 @@ def initialize_mqtt_clients():
         """)
         mqtt_sources = cur.fetchall()
 
-        logging.info(f"[MQTT-INIT] Found {len(mqtt_sources)} MQTT data sources")
+        logging.info(f"[MQTT-INIT] 📊 Found {len(mqtt_sources)} MQTT data sources")
 
         for source in mqtt_sources:
             data_source_id, broker_url, username, password = source
-            logging.info(f"[MQTT-INIT] Processing data source {data_source_id}: {broker_url}")
+            logging.info(f"[MQTT-INIT] 🔄 Processing data source {data_source_id}: {broker_url}")
 
             # Check if client already exists
             if data_source_id in mqtt_clients:
-                logging.warning(f"[MQTT-INIT] MQTT client for data source {data_source_id} already exists")
+                logging.warning(f"[MQTT-INIT] ⚠️ MQTT client for data source {data_source_id} already exists")
                 continue
 
             try:
@@ -721,19 +721,23 @@ def initialize_mqtt_clients():
                 thread.start()
                 logging.info(f"[MQTT-INIT] ✅ Started MQTT client thread for data source {data_source_id}")
 
-                # Give thread time to start
-                time.sleep(0.1)
+                # Give thread time to start and check if it's alive
+                time.sleep(0.5)
+                if thread.is_alive():
+                    logging.info(f"[MQTT-INIT] 🟢 Thread {thread.name} is running")
+                else:
+                    logging.error(f"[MQTT-INIT] 🔴 Thread {thread.name} died immediately")
 
             except Exception as thread_error:
                 logging.error(f"[MQTT-INIT] ❌ Failed to start MQTT thread for data source {data_source_id}: {thread_error}")
 
     except Exception as e:
-        logging.error(f"[MQTT-INIT] MQTT initialization failed: {e}")
+        logging.error(f"[MQTT-INIT] 💥 MQTT initialization failed: {e}")
     finally:
         if conn:
             put_db_connection(conn)
 
-    logging.info("[MQTT-INIT] MQTT client initialization completed")
+    logging.info("[MQTT-INIT] ✨ MQTT client initialization completed")
 
 # Add to initialization
 def initialize_app():
@@ -2281,17 +2285,27 @@ def emit_device_update(device_id, data):
 
 if __name__ == '__main__':
     try:
-        initialize_app()
+        logging.info("[STARTUP] 🚀 Beginning application startup...")
+        logging.info("[STARTUP] Environment check:")
+        logging.info(f"[STARTUP]   RAILWAY_ENVIRONMENT: {os.getenv('RAILWAY_ENVIRONMENT', 'NOT SET')}")
+        logging.info(f"[STARTUP]   DATABASE_URL: {'SET' if os.getenv('DATABASE_URL') else 'NOT SET'}")
+        logging.info(f"[STARTUP]   PORT: {os.getenv('PORT', 'NOT SET')}")
+
+        logging.info("[STARTUP] 📡 Initializing MQTT clients...")
+        initialize_mqtt_clients()
+
+        logging.info("[STARTUP] 🗄️ Initializing database...")
         initialize_database()
-          # Moved here after DB init
-        
-        logging.info("Starting Flask application...")
+
+        logging.info("[STARTUP] ✨ Starting Flask application...")
         socketio.run(app,
                     host=os.getenv('FLASK_HOST', '0.0.0.0'),
                     port=int(os.getenv('FLASK_PORT', 5000)),
                     debug=os.getenv('FLASK_DEBUG', 'false').lower() == 'true')
     except KeyboardInterrupt:
-        logging.info("Application shutting down...")
+        logging.info("[STARTUP] Application shutting down...")
     except Exception as e:
-        logging.error(f"Application startup failed: {e}")
+        logging.error(f"[STARTUP] 💥 Application startup failed: {e}")
+        import traceback
+        traceback.print_exc()
         sys.exit(1)
