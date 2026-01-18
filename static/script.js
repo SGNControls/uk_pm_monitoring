@@ -31,69 +31,88 @@ function initializeWebSocket() {
         startRealtimePolling();
         return;
     }
-    
+
     try {
-        // Initialize socket connection with error handling
-        socket = io({
-            transports: ['websocket', 'polling'],
+        // Get current protocol and host for Railway compatibility
+        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        const host = window.location.host;
+
+        // Initialize socket connection with Railway-compatible settings
+        socket = io('/', {
+            transports: ['polling', 'websocket'], // Try polling first, then websocket
             reconnection: true,
-            reconnectionAttempts: 5,
-            reconnectionDelay: 1000,
-            timeout: 20000
+            reconnectionAttempts: 3, // Reduce reconnection attempts
+            reconnectionDelay: 2000, // Increase delay
+            timeout: 10000, // Reduce timeout
+            forceNew: false,
+            upgrade: true
         });
-        
+
         // Connection event handlers
         socket.on('connect', function() {
-            console.log('Connected to server');
+            console.log('✅ WebSocket connected to server');
             updateConnectionStatus(true);
-            stopRealtimePolling();
-            
+            stopRealtimePolling(); // Stop polling when WebSocket connects
+
             // Join device room if a device is selected
             if (currentDeviceId) {
                 joinDeviceRoom(currentDeviceId);
             }
         });
-        
+
         socket.on('disconnect', function(reason) {
-            console.log('Disconnected from server:', reason);
+            console.log('❌ WebSocket disconnected:', reason);
             updateConnectionStatus(false);
-            if (reason === 'io server disconnect') {
-                // Server forced disconnect, need to manually reconnect
-                socket.connect();
-            } else {
-                startRealtimePolling();
+            // Only start polling if it's a network issue, not intentional disconnect
+            if (reason !== 'io client disconnect') {
+                // Delay polling start to avoid immediate reloads
+                setTimeout(() => {
+                    startRealtimePolling();
+                }, 5000);
             }
         });
-        
+
         socket.on('connect_error', function(error) {
-            console.error('Connection error:', error);
+            console.error('❌ WebSocket connection error:', error);
             updateConnectionStatus(false);
+            // Don't immediately start polling - let it retry WebSocket first
+        });
+
+        socket.on('reconnect', function(attemptNumber) {
+            console.log('🔄 WebSocket reconnected after', attemptNumber, 'attempts');
+            updateConnectionStatus(true);
+            stopRealtimePolling();
+        });
+
+        socket.on('reconnect_error', function(error) {
+            console.error('❌ WebSocket reconnection failed:', error);
+            // Start polling as last resort
             startRealtimePolling();
         });
-        
-        // Handle incoming data
+
+        // Handle incoming data - prevent duplicate processing
         socket.on('new_data', function(data) {
             if (String(data.device_id) === String(currentDeviceId)) {
-                processIncomingData(data);
+                console.log('📡 Received WebSocket sensor data');
+                safeProcessIncomingData(data);
             }
         });
-        
+
         socket.on('new_extended_data', function(data) {
             if (currentDeviceType === 'extended' && String(data.device_id) === String(currentDeviceId)) {
-                console.log('📡 Received WebSocket extended data:', data);
+                console.log('📡 Received WebSocket extended data');
                 // Normalize WebSocket data before passing to updateExtendedData
                 const normalized = normalizeIncomingData({ extended: data });
                 if (normalized && normalized.extended) {
-                    console.log('🔄 Normalized WebSocket data:', normalized.extended);
                     updateExtendedData(normalized.extended);
                 } else {
                     console.warn('❌ Failed to normalize WebSocket extended data');
                 }
             }
         });
-        
+
     } catch (error) {
-        console.error('WebSocket initialization failed:', error);
+        console.error('❌ WebSocket initialization failed:', error);
         startRealtimePolling();
     }
 }
@@ -1521,15 +1540,16 @@ function updateDeepAnalyticsCharts(data) {
 }
 
 function startRealtimePolling() {
+    // Prevent multiple polling instances
     if (pollingIntervalId || !currentDeviceId) return;
-    
-    console.log('Starting real-time polling');
+
+    console.log('Starting real-time polling (fallback mode)');
     pollingIntervalId = setInterval(() => {
-        if (currentDeviceId) {
-            console.log('Polling for new data...');
+        if (currentDeviceId && (!socket || !socket.connected)) {
+            console.log('Polling for new data (WebSocket unavailable)...');
             fetchData(0.25); // Get last 15 minutes of data
         }
-    }, 5000); // Poll every 5 seconds
+    }, 30000); // Poll every 30 seconds (reduced from 5 seconds)
 }
 
 function stopRealtimePolling() {
