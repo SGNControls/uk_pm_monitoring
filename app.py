@@ -258,21 +258,8 @@ def initialize_database():
 
 
             
-    try:
-        conn = get_db_connection()
-        cur = conn.cursor()
-        cur.execute("SELECT id, broker_url, username, password FROM dust_data_sources WHERE source_type = 'mqtt'")
-        mqtt_sources = cur.fetchall()
-        print(f"[DEBUG] Fetched {len(mqtt_sources)} MQTT data sources from DB")
-        for source in mqtt_sources:
-            data_source_id, broker_url, username, password = source
-            eventlet.spawn(start_mqtt_client, data_source_id, broker_url, ['sensor/data', 'dustrak/status'], username, password)
-            logging.info(f"[INIT] Started MQTT thread for source {data_source_id}")
-    except Exception as e:
-        logging.error(f"MQTT client startup failed: {e}")
-    finally:
-        if conn:
-            put_db_connection(conn)
+    # MQTT clients are now initialized in initialize_mqtt_clients() above
+    pass
 
     
 
@@ -585,100 +572,121 @@ def on_mqtt_message(client, userdata, msg):
         logging.error(f"Error processing MQTT message: {e}")
 
 def start_mqtt_client(data_source_id, broker_url, topics, username=None, password=None):
-    def on_connect(client, userdata, flags, rc, properties=None):
-        logging.info(f"[MQTT] Connected to broker: {broker_url}, rc={rc}")
-        if rc == 0:
-            for topic in topics:
-                client.subscribe(topic, qos=1)  # Add QoS
-                logging.info(f"Subscribed to topic: {topic}")
-        else:
-            logging.error(f"Connection failed with rc={rc}")
+    """Start MQTT client with Railway-compatible threading"""
+    import threading
 
-    def on_message(client, userdata, msg):
-        try:
-            # Get full payload first
-            raw_payload = msg.payload.decode('utf-8')
-            logging.info(f"[MQTT] Topic: {msg.topic}")
-            logging.info(f"[MQTT] Payload size: {len(raw_payload)} bytes")
-            logging.info(f"[MQTT] Full payload: {raw_payload}")  # Log complete payload
-            
-            payload = json.loads(raw_payload)
-            device_id = payload.get("deviceid") or payload.get("i")  # Support both formats
+    def mqtt_worker():
+        def on_connect(client, userdata, flags, rc, properties=None):
+            logging.info(f"[MQTT-{data_source_id}] Connected to broker: {broker_url}, rc={rc}")
+            if rc == 0:
+                for topic in topics:
+                    client.subscribe(topic, qos=1)
+                    logging.info(f"[MQTT-{data_source_id}] Subscribed to topic: {topic}")
+            else:
+                logging.error(f"[MQTT-{data_source_id}] Connection failed with rc={rc}")
 
-            if not device_id:
-                logging.warning("MQTT message missing deviceid or i")
-                return
-                
-            logging.info(f"[MQTT] Parsed payload keys: {list(payload.keys())}")
-            
-            timestamp = datetime.now(timezone.utc)
-            data_source_id = userdata['data_source_id']
-            
-            if msg.topic.endswith("data"):
-                # Check for compact format (new format with e, pm, g arrays)
-                is_compact_format = "e" in payload and "pm" in payload and "g" in payload
-                # Check for legacy extended format
-                has_pm_data = "PM_data" in payload
-                has_extended_keys = any(k in payload for k in ["Temperature_C", "Humidity_%", "GPS"])
+        def on_message(client, userdata, msg):
+            try:
+                # Get full payload first
+                raw_payload = msg.payload.decode('utf-8')
+                logging.info(f"[MQTT-{data_source_id}] Topic: {msg.topic}")
+                logging.info(f"[MQTT-{data_source_id}] Payload size: {len(raw_payload)} bytes")
+                logging.info(f"[MQTT-{data_source_id}] Full payload: {raw_payload}")
 
-                logging.info(f"[MQTT] Compact format present: {is_compact_format}")
-                logging.info(f"[MQTT] Legacy PM_data present: {has_pm_data}")
-                logging.info(f"[MQTT] Legacy extended keys present: {has_extended_keys}")
+                payload = json.loads(raw_payload)
+                device_id = payload.get("deviceid") or payload.get("i")
 
-                if is_compact_format or (has_pm_data and has_extended_keys):
-                    logging.info("[MQTT] Routing to process_extended_device_data")
-                    process_extended_device_data(payload, device_id, timestamp, data_source_id)
-                else:
-                    logging.info("[MQTT] Routing to process_sensor_data")
-                    process_sensor_data(payload, device_id, timestamp, data_source_id)
-            elif msg.topic.endswith("status"):
-                process_status_data(payload, device_id)
-                
-        except json.JSONDecodeError as e:
-            logging.error(f"[MQTT] JSON decode error: {e}")
-            logging.error(f"[MQTT] Raw payload: {msg.payload}")
-        except Exception as e:
-            logging.error(f"[MQTT] Error processing message: {e}")
+                if not device_id:
+                    logging.warning(f"[MQTT-{data_source_id}] Message missing deviceid or i")
+                    return
 
-    while True:
-        try:
-            client = mqtt.Client(
-                mqtt.CallbackAPIVersion.VERSION2, 
-                userdata={"data_source_id": data_source_id, "topics": topics}
-            )
-            
-            # Configure authentication
-            if username and password:
-                client.username_pw_set(username, password)
-            
-            # Use the same TLS configuration as your working client
-            import ssl
-            context = ssl.create_default_context(ssl.Purpose.SERVER_AUTH)
-            context.check_hostname = False
-            context.verify_mode = ssl.CERT_NONE
-            client.tls_set_context(context)
-            
-            # Set message buffer and queue sizes
-            client.max_inflight_messages_set(20)
-            client.max_queued_messages_set(0)  # Unlimited queue
-            
-            
-            client.on_connect = on_connect
-            client.on_message = on_message
-            
-            client.connect(broker_url, 8883, 60)
-            client.loop_start()
-            
-            mqtt_clients[data_source_id] = client
-            logging.info(f"[MQTT] Client started for data_source_id: {data_source_id}")
-            return
-            
-        except Exception as e:
-            logging.error(f"[MQTT] Connection error: {e}, retrying in 10s...")
-            time.sleep(10)
+                logging.info(f"[MQTT-{data_source_id}] Parsed payload keys: {list(payload.keys())}")
 
-# Updated MQTT initialization function
+                timestamp = datetime.now(timezone.utc)
+                data_source_id_local = userdata['data_source_id']
+
+                if msg.topic.endswith("data"):
+                    # Check for compact format
+                    is_compact_format = "e" in payload and "pm" in payload and "g" in payload
+                    has_pm_data = "PM_data" in payload
+                    has_extended_keys = any(k in payload for k in ["Temperature_C", "Humidity_%", "GPS"])
+
+                    logging.info(f"[MQTT-{data_source_id}] Compact format: {is_compact_format}")
+
+                    if is_compact_format or (has_pm_data and has_extended_keys):
+                        logging.info(f"[MQTT-{data_source_id}] Processing extended data")
+                        process_extended_device_data(payload, device_id, timestamp, data_source_id_local)
+                    else:
+                        logging.info(f"[MQTT-{data_source_id}] Processing sensor data")
+                        process_sensor_data(payload, device_id, timestamp, data_source_id_local)
+                elif msg.topic.endswith("status"):
+                    process_status_data(payload, device_id)
+
+            except json.JSONDecodeError as e:
+                logging.error(f"[MQTT-{data_source_id}] JSON decode error: {e}")
+                logging.error(f"[MQTT-{data_source_id}] Raw payload: {msg.payload}")
+            except Exception as e:
+                logging.error(f"[MQTT-{data_source_id}] Error processing message: {e}")
+
+        def on_disconnect(client, userdata, rc):
+            logging.warning(f"[MQTT-{data_source_id}] Disconnected with code: {rc}")
+            if rc != 0:
+                logging.info(f"[MQTT-{data_source_id}] Unexpected disconnection, will retry...")
+
+        while True:
+            try:
+                logging.info(f"[MQTT-{data_source_id}] Creating MQTT client...")
+
+                client = mqtt.Client(
+                    mqtt.CallbackAPIVersion.VERSION2,
+                    userdata={"data_source_id": data_source_id, "topics": topics}
+                )
+
+                # Configure authentication
+                if username and password:
+                    client.username_pw_set(username, password)
+                    logging.info(f"[MQTT-{data_source_id}] Auth configured for user: {username}")
+
+                # Configure TLS for Railway compatibility
+                import ssl
+                context = ssl.create_default_context(ssl.Purpose.SERVER_AUTH)
+                context.check_hostname = False
+                context.verify_mode = ssl.CERT_NONE
+                client.tls_set_context(context)
+
+                # Set callbacks
+                client.on_connect = on_connect
+                client.on_message = on_message
+                client.on_disconnect = on_disconnect
+
+                # Set message buffer sizes
+                client.max_inflight_messages_set(10)
+                client.max_queued_messages_set(100)
+
+                logging.info(f"[MQTT-{data_source_id}] Connecting to {broker_url}:8883...")
+                client.connect(broker_url, 8883, 60)
+
+                # Store client reference
+                mqtt_clients[data_source_id] = client
+                logging.info(f"[MQTT-{data_source_id}] Client stored, starting loop...")
+
+                # Start the MQTT loop (blocking)
+                client.loop_forever()
+
+            except Exception as e:
+                logging.error(f"[MQTT-{data_source_id}] Connection error: {e}")
+                logging.info(f"[MQTT-{data_source_id}] Retrying in 15 seconds...")
+                time.sleep(15)
+
+    # Start the MQTT worker in a daemon thread
+    thread = threading.Thread(target=mqtt_worker, daemon=True, name=f"MQTT-{data_source_id}")
+    thread.start()
+    logging.info(f"[MQTT-{data_source_id}] Started MQTT thread")
+
+# Updated MQTT initialization function using standard threading
 def initialize_mqtt_clients():
+    import threading
+
     try:
         conn = get_db_connection()
         cur = conn.cursor()
@@ -688,13 +696,20 @@ def initialize_mqtt_clients():
             WHERE ds.source_type = 'mqtt'
         """)
         mqtt_sources = cur.fetchall()
-        
+
         for source in mqtt_sources:
             data_source_id, broker_url, username, password = source
             # Check if client already exists
             if data_source_id not in mqtt_clients:
-                eventlet.spawn(start_mqtt_client, data_source_id, broker_url, ['sensor/data', 'dustrak/status'], username, password)
-                logging.info(f"Started MQTT client for data source {data_source_id}")
+                # Use standard threading instead of eventlet
+                thread = threading.Thread(
+                    target=start_mqtt_client,
+                    args=(data_source_id, broker_url, ['sensor/data', 'dustrak/status'], username, password),
+                    daemon=True,
+                    name=f"MQTT-Init-{data_source_id}"
+                )
+                thread.start()
+                logging.info(f"Started MQTT client thread for data source {data_source_id}")
     except Exception as e:
         logging.error(f"MQTT initialization failed: {e}")
     finally:
@@ -1146,8 +1161,7 @@ def add_data_source():
                 data_source_id = cur.fetchone()[0]
                 conn.commit()
 
-                # Start MQTT client in a separate thread with credentials
-                eventlet.spawn(start_mqtt_client, data_source_id, broker_url, ['sensor/data', 'dustrak/status'], username, password)
+                # MQTT clients are now initialized in initialize_mqtt_clients() above
 
             else:  # API source
                 api_device_id = data.get('api_device_id')
