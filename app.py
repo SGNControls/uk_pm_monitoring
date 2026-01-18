@@ -683,9 +683,11 @@ def start_mqtt_client(data_source_id, broker_url, topics, username=None, passwor
     thread.start()
     logging.info(f"[MQTT-{data_source_id}] Started MQTT thread")
 
-# Updated MQTT initialization function using standard threading
+# Updated MQTT initialization function using Railway-compatible approach
 def initialize_mqtt_clients():
     import threading
+
+    logging.info("[MQTT-INIT] Starting MQTT client initialization...")
 
     try:
         conn = get_db_connection()
@@ -697,24 +699,41 @@ def initialize_mqtt_clients():
         """)
         mqtt_sources = cur.fetchall()
 
+        logging.info(f"[MQTT-INIT] Found {len(mqtt_sources)} MQTT data sources")
+
         for source in mqtt_sources:
             data_source_id, broker_url, username, password = source
+            logging.info(f"[MQTT-INIT] Processing data source {data_source_id}: {broker_url}")
+
             # Check if client already exists
-            if data_source_id not in mqtt_clients:
-                # Use standard threading instead of eventlet
+            if data_source_id in mqtt_clients:
+                logging.warning(f"[MQTT-INIT] MQTT client for data source {data_source_id} already exists")
+                continue
+
+            try:
+                # Use standard threading instead of eventlet for Railway compatibility
                 thread = threading.Thread(
                     target=start_mqtt_client,
                     args=(data_source_id, broker_url, ['sensor/data', 'dustrak/status'], username, password),
                     daemon=True,
-                    name=f"MQTT-Init-{data_source_id}"
+                    name=f"MQTT-{data_source_id}"
                 )
                 thread.start()
-                logging.info(f"Started MQTT client thread for data source {data_source_id}")
+                logging.info(f"[MQTT-INIT] ✅ Started MQTT client thread for data source {data_source_id}")
+
+                # Give thread time to start
+                time.sleep(0.1)
+
+            except Exception as thread_error:
+                logging.error(f"[MQTT-INIT] ❌ Failed to start MQTT thread for data source {data_source_id}: {thread_error}")
+
     except Exception as e:
-        logging.error(f"MQTT initialization failed: {e}")
+        logging.error(f"[MQTT-INIT] MQTT initialization failed: {e}")
     finally:
         if conn:
             put_db_connection(conn)
+
+    logging.info("[MQTT-INIT] MQTT client initialization completed")
 
 # Add to initialization
 def initialize_app():
