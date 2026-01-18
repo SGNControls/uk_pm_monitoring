@@ -32,4 +32,4 @@ HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
     CMD python -c "import requests; requests.get('http://localhost:8000/', timeout=10)" || exit 1
 
 # Start the application
-CMD ["gunicorn", "--worker-class", "eventlet", "-w", "1", "--bind", "0.0.0.0:8000", "app:app"]
+CMD gunicorn --worker-class eventlet -w 1 --bind 0.0.0.0:$PORT app:app
