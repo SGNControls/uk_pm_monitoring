@@ -19,6 +19,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy application code
 COPY . .
 
+# Make entrypoint script executable
+RUN chmod +x entrypoint.sh
+
 # Create non-root user for security
 RUN useradd --create-home --shell /bin/bash app \
     && chown -R app:app /app
@@ -29,7 +32,7 @@ EXPOSE 8000
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
-    CMD python -c "import requests; requests.get('http://localhost:8000/', timeout=10)" || exit 1
+    CMD python -c "import requests; requests.get('http://localhost:$PORT/', timeout=10)" || exit 1
 
 # Start the application
-CMD gunicorn --worker-class eventlet -w 1 --bind 0.0.0.0:$PORT app:app
+ENTRYPOINT ["./entrypoint.sh"]
