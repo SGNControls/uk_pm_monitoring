@@ -1,0 +1,1446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Products - SGN Controls | Precision Instruments & Custom R&D Solutions</title>
+    <meta name="description" content="Explore SGN Controls' comprehensive range of precision instruments, modular labs, and custom R&D solutions for air quality research and industry applications.">
+    <meta name="keywords" content="aerosol monitoring, mobile labs, testing equipment, HEPA filters, PM measurement, IoT modules, scientific instruments">
+    <meta name="author" content="SGN Controls">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://sgncontrols.co.in/products">
+    <meta property="og:title" content="Products - SGN Controls">
+    <meta property="og:description" content="Precision instruments, modular labs, and custom R&D solutions for air quality research">
+    <meta property="og:image" content="sgn.jpg">
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://sgncontrols.co.in/products">
+    <meta property="twitter:title" content="Products - SGN Controls">
+    <meta property="twitter:description" content="Precision instruments, modular labs, and custom R&D solutions for air quality research">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/common.css') }}">
+    
+    <!-- Additional Product Page Styles -->
+    <style>
+        .product-category {
+            margin-bottom: var(--space-3xl);
+            position: relative;
+        }
+        
+        .category-header {
+            text-align: center;
+            margin-bottom: var(--space-2xl);
+            position: relative;
+        }
+        
+        .category-title {
+            font-size: clamp(1.8rem, 3vw, 2.5rem);
+            font-weight: 700;
+            margin-bottom: var(--space-sm);
+            background: var(--gradient-orange);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-family: var(--font-display);
+            position: relative;
+            display: inline-block;
+        }
+        
+        .category-title::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 4px;
+            background: var(--gradient-orange);
+            border-radius: 2px;
+        }
+        
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+            gap: var(--space-xl);
+            margin-bottom: var(--space-2xl);
+        }
+        
+        .product-card {
+            background: white;
+            border-radius: var(--radius-xl);
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+            transition: all var(--transition-normal);
+            position: relative;
+            cursor: pointer;
+            border: 2px solid transparent;
+        }
+        
+        .product-card:hover {
+            transform: translateY(-8px);
+            box-shadow: var(--shadow-orange);
+            border-color: var(--primary-orange);
+        }
+        
+        .product-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            background: var(--gradient-orange);
+            transform: scaleX(0);
+            transition: transform var(--transition-normal);
+        }
+        
+        .product-card:hover::before {
+            transform: scaleX(1);
+        }
+        
+        .product-image {
+            height: 200px;
+            background: var(--gradient-subtle);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .product-image::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23FF8C00' fill-opacity='0.1'%3E%3Ccircle cx='30' cy='30' r='4'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+            animation: float 10s ease-in-out infinite;
+        }
+        
+        .product-icon {
+            font-size: 3rem;
+            color: var(--primary-orange);
+            z-index: 2;
+            position: relative;
+            transition: all var(--transition-normal);
+        }
+        
+        .product-card:hover .product-icon {
+            transform: scale(1.1) rotate(5deg);
+        }
+        
+        .product-content {
+            padding: var(--space-xl);
+        }
+        
+        .product-title {
+            font-size: 1.4rem;
+            font-weight: 600;
+            margin-bottom: var(--space-sm);
+            color: var(--dark-grey);
+            font-family: var(--font-primary);
+            line-height: 1.3;
+        }
+        
+        .product-description {
+            color: var(--secondary-grey);
+            line-height: 1.6;
+            margin-bottom: var(--space-lg);
+            font-size: 1rem;
+        }
+        
+        .product-features {
+            list-style: none;
+            margin-bottom: var(--space-lg);
+        }
+        
+        .product-features li {
+            display: flex;
+            align-items: center;
+            gap: var(--space-xs);
+            margin-bottom: var(--space-xs);
+            color: var(--secondary-grey);
+            font-size: 0.9rem;
+        }
+        
+        .product-features li::before {
+            content: '✓';
+            color: var(--primary-orange);
+            font-weight: bold;
+            font-size: 1rem;
+        }
+        
+        .product-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: var(--space-md);
+            border-top: 1px solid var(--light-grey);
+        }
+        
+        .product-badge {
+            display: inline-block;
+            background: rgba(255, 140, 0, 0.1);
+            color: var(--primary-orange);
+            padding: var(--space-xs) var(--space-sm);
+            border-radius: var(--radius-round);
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .enquire-btn {
+            background: var(--gradient-orange);
+            color: white;
+            padding: var(--space-xs) var(--space-md);
+            border: none;
+            border-radius: var(--radius-round);
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all var(--transition-normal);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-xs);
+        }
+        
+        .enquire-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-orange-light);
+            color: white;
+        }
+        
+        .filter-bar {
+            background: white;
+            padding: var(--space-lg);
+            border-radius: var(--radius-xl);
+            box-shadow: var(--shadow-sm);
+            margin-bottom: var(--space-2xl);
+            position: sticky;
+            top: 80px;
+            z-index: 100;
+        }
+        
+        .filter-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--space-sm);
+            justify-content: center;
+        }
+        
+        .filter-btn {
+            background: var(--bg-secondary);
+            color: var(--primary-grey);
+            border: 2px solid transparent;
+            padding: var(--space-xs) var(--space-md);
+            border-radius: var(--radius-round);
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all var(--transition-normal);
+            text-decoration: none;
+        }
+        
+        .filter-btn:hover,
+        .filter-btn.active {
+            background: var(--gradient-orange);
+            color: white;
+            border-color: var(--primary-orange);
+            transform: translateY(-2px);
+        }
+        
+        .search-bar {
+            max-width: 400px;
+            margin: 0 auto var(--space-lg);
+            position: relative;
+        }
+        
+        .search-input {
+            width: 100%;
+            padding: var(--space-sm) var(--space-md) var(--space-sm) 50px;
+            border: 2px solid var(--light-grey);
+            border-radius: var(--radius-round);
+            font-size: 1rem;
+            transition: all var(--transition-normal);
+        }
+        
+        .search-input:focus {
+            border-color: var(--primary-orange);
+            box-shadow: 0 0 0 3px rgba(255, 140, 0, 0.1);
+        }
+        
+        .search-icon {
+            position: absolute;
+            left: var(--space-md);
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--secondary-grey);
+        }
+        
+        .stats-banner {
+            background: var(--gradient-grey);
+            color: white;
+            padding: var(--space-2xl) 0;
+            margin: var(--space-3xl) 0;
+            border-radius: var(--radius-xl);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .stats-banner::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7z' fill='%23ffffff' fill-opacity='0.05'/%3E%3C/svg%3E");
+            opacity: 0.5;
+        }
+        
+        .cta-section {
+            background: var(--gradient-subtle);
+            padding: var(--space-3xl) 0;
+            margin-top: var(--space-3xl);
+            border-radius: var(--radius-xl);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .cta-section::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: var(--gradient-radial);
+            animation: rotate 20s linear infinite;
+        }
+        
+        @media (max-width: 768px) {
+            .product-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .filter-buttons {
+                justify-content: flex-start;
+            }
+            
+            .product-card {
+                margin-bottom: var(--space-lg);
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div class="loader" id="loader">
+        <div class="spinner"></div>
+        <div class="loader-text">Loading Products...</div>
+    </div>
+
+    <!-- Particle Background -->
+    <div class="particles" id="particles"></div>
+
+    <!-- Navigation -->
+    <nav id="navbar">
+        <div class="nav-container">
+            <div class="logo" onclick="window.location.href='/'">
+                <i class="fas fa-atom"></i> SGN Controls
+            </div>
+            <ul class="nav-menu" id="nav-menu">
+                <li class="nav-item"><a class="nav-link" href="/">Home</a></li>
+                <li class="nav-item"><a class="nav-link" href="/about_us">About Us</a></li>
+                <li class="nav-item"><a class="nav-link" href="/products">Products</a></li>
+                <li class="nav-item"><a class="nav-link" href="/contact_us">Contact Us</a></li>
+                <li class="nav-item"><a class="nav-link" href="/login">Login to your device</a></li>
+            </ul>
+            <div class="nav-toggle" id="nav-toggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+            <a href="/contact_us" class="btn btn-primary btn-sm no-print">
+                <i class="fas fa-phone"></i> Get Quote
+            </a>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="section section-lg" style="background: var(--gradient-subtle); position: relative; overflow: hidden; margin-top: 80px;">
+        <div class="container">
+            <div class="text-center">
+                <div style="display: inline-block; background: rgba(255, 140, 0, 0.1); padding: var(--space-xs) var(--space-md); border-radius: var(--radius-round); margin-bottom: var(--space-lg); font-size: 0.9rem; font-weight: 600; color: var(--primary-orange);">
+                    <i class="fas fa-cogs"></i> Precision Instruments & Solutions
+                </div>
+                
+                <h1 style="font-size: clamp(2.5rem, 5vw, 4rem); line-height: 1.1; margin-bottom: var(--space-md); background: var(--gradient-orange); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
+                    Our Product Portfolio
+                </h1>
+                
+                <p style="font-size: 1.25rem; color: var(--secondary-grey); margin-bottom: var(--space-2xl); line-height: 1.7; max-width: 800px; margin-left: auto; margin-right: auto;">
+                    Precision instruments, modular labs, and custom R&D solutions designed for air quality research and industry applications. 
+                    <strong style="color: var(--primary-orange);">Explore our innovative range below.</strong>
+                </p>
+
+                <!-- Quick Stats -->
+                <div class="grid grid-4" style="margin-bottom: var(--space-2xl); gap: var(--space-lg);">
+                    <div class="text-center">
+                        <div style="font-size: 2.5rem; font-weight: 800; color: var(--primary-orange); font-family: var(--font-display);">25+</div>
+                        <div style="font-size: 0.9rem; color: var(--secondary-grey);">Product Categories</div>
+                    </div>
+                    <div class="text-center">
+                        <div style="font-size: 2.5rem; font-weight: 800; color: var(--primary-orange); font-family: var(--font-display);">100+</div>
+                        <div style="font-size: 0.9rem; color: var(--secondary-grey);">Custom Solutions</div>
+                    </div>
+                    <div class="text-center">
+                        <div style="font-size: 2.5rem; font-weight: 800; color: var(--primary-orange); font-family: var(--font-display);">24/7</div>
+                        <div style="font-size: 0.9rem; color: var(--secondary-grey);">Technical Support</div>
+                    </div>
+                    <div class="text-center">
+                        <div style="font-size: 2.5rem; font-weight: 800; color: var(--primary-orange); font-family: var(--font-display);">ISO</div>
+                        <div style="font-size: 0.9rem; color: var(--secondary-grey);">Compliant Standards</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Filter & Search Section -->
+    <section class="container">
+        <div class="filter-bar">
+            <!-- Search Bar -->
+            <div class="search-bar">
+                <i class="fas fa-search search-icon"></i>
+                <input type="text" class="search-input" placeholder="Search products..." id="searchInput">
+            </div>
+            
+            <!-- Filter Buttons -->
+            <div class="filter-buttons">
+                <button class="filter-btn active" data-category="all">
+                    <i class="fas fa-th-large"></i> All Products
+                </button>
+                <button class="filter-btn" data-category="mobile-labs">
+                    <i class="fas fa-truck"></i> Mobile Labs
+                </button>
+                <button class="filter-btn" data-category="instruments">
+                    <i class="fas fa-microscope"></i> Instruments
+                </button>
+                <button class="filter-btn" data-category="testing">
+                    <i class="fas fa-flask"></i> Testing Equipment
+                </button>
+                <button class="filter-btn" data-category="sampling">
+                    <i class="fas fa-wind"></i> Sampling Systems
+                </button>
+                <button class="filter-btn" data-category="iot">
+                    <i class="fas fa-wifi"></i> IoT Solutions
+                </button>
+                <button class="filter-btn" data-category="custom">
+                    <i class="fas fa-cogs"></i> Custom Solutions
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Products Section -->
+    <section class="container">
+        <!-- Mobile Labs Category -->
+        <div class="product-category fade-in" data-category="mobile-labs">
+            <div class="category-header">
+                <h2 class="category-title">
+                    <i class="fas fa-truck"></i> Mobile Laboratory Solutions
+                </h2>
+                <p style="color: var(--secondary-grey); max-width: 600px; margin: 0 auto;">
+                    Fully-equipped mobile laboratories for on-site research, monitoring, and field studies with professional-grade instrumentation.
+                </p>
+            </div>
+            
+            <div class="product-grid">
+                <!-- Mobile Aerosol Research Lab -->
+                <div class="product-card" data-category="mobile-labs">
+                    <div class="product-image">
+                        <i class="fas fa-truck product-icon"></i>
+                    </div>
+                    <div class="product-content">
+                        <h3 class="product-title">Mobile Aerosol Research Lab</h3>
+                        <p class="product-description">
+                            Fully-equipped van for on-road and site aerosol & PM monitoring. Ideal for mobile labs and remote sampling with real-time data collection capabilities.
+                        </p>
+                        <ul class="product-features">
+                            <li>Real-time PM monitoring (PM1, PM2.5, PM10, TSP)</li>
+                            <li>GPS-enabled location tracking</li>
+                            <li>Climate-controlled environment</li>
+                            <li>Remote data transmission</li>
+                            <li>Multi-parameter analysis</li>
+                        </ul>
+                        <div class="product-footer">
+                            <span class="product-badge">Field Ready</span>
+                            <a href="/contact_us" class="enquire-btn">
+                                <i class="fas fa-paper-plane"></i> Enquire
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Containerized Lab -->
+                <div class="product-card" data-category="mobile-labs">
+                    <div class="product-image">
+                        <i class="fas fa-shipping-fast product-icon"></i>
+                    </div>
+                    <div class="product-content">
+                        <h3 class="product-title">Containerized Aerosol Laboratory</h3>
+                        <p class="product-description">
+                            Compact, containerized aerosol laboratories for R&D, compliant with regulatory and industrial standards for comprehensive air quality research.
+                        </p>
+                        <ul class="product-features">
+                            <li>ISO container-based design</li>
+                            <li>Regulatory compliant setup</li>
+                            <li>Multi-instrument integration</li>
+                            <li>Temperature & humidity control</li>
+                            <li>Modular configuration</li>
+                        </ul>
+                        <div class="product-footer">
+                            <span class="product-badge">ISO Compliant</span>
+                            <a href="/contact" class="enquire-btn">
+                                <i class="fas fa-paper-plane"></i> Enquire
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Research Instruments Category -->
+        <div class="product-category fade-in" data-category="instruments">
+            <div class="category-header">
+                <h2 class="category-title">
+                    <i class="fas fa-microscope"></i> Research Instruments
+                </h2>
+                <p style="color: var(--secondary-grey); max-width: 600px; margin: 0 auto;">
+                    Precision measurement instruments for accurate air quality monitoring, particle analysis, and environmental research applications.
+                </p>
+            </div>
+            
+            <div class="product-grid">
+                <!-- Gravimetric PM Monitor -->
+                <div class="product-card" data-category="instruments">
+                    <div class="product-image">
+                        <i class="fas fa-balance-scale product-icon"></i>
+                    </div>
+                    <div class="product-content">
+                        <h3 class="product-title">Gravimetric PM Monitor</h3>
+                        <p class="product-description">
+                            Provides precise, reference-grade PM measurements using gravimetric techniques. Standard for regulatory use and compliance monitoring.
+                        </p>
+                        <ul class="product-features">
+                            <li>Reference-grade accuracy</li>
+                            <li>Regulatory compliance</li>
+                            <li>Automated filter exchange</li>
+                            <li>Temperature compensation</li>
+                            <li>Data logging & export</li>
+                        </ul>
+                        <div class="product-footer">
+                            <span class="product-badge">Reference Grade</span>
+                            <a href="/contact" class="enquire-btn">
+                                <i class="fas fa-paper-plane"></i> Enquire
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Real-time PM Monitor -->
+                <div class="product-card" data-category="instruments">
+                    <div class="product-image">
+                        <i class="fas fa-chart-line product-icon"></i>
+                    </div>
+                    <div class="product-content">
+                        <h3 class="product-title">Real-time PM Monitor</h3>
+                        <p class="product-description">
+                            Continuous, real-time particulate monitoring with data logging and IoT integration. Supports PM1, PM2.5, PM10, TSP measurements.
+                        </p>
+                        <ul class="product-features">
+                            <li>Real-time measurements</li>
+                            <li>IoT connectivity</li>
+                            <li>Cloud data storage</li>
+                            <li>Mobile app integration</li>
+                            <li>Alert system</li>
+                        </ul>
+                        <div class="product-footer">
+                            <span class="product-badge">IoT Enabled</span>
+                            <a href="/contact" class="enquire-btn">
+                                <i class="fas fa-paper-plane"></i> Enquire
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Low-cost PM Monitor -->
+                <div class="product-card" data-category="instruments">
+                    <div class="product-image">
+                        <i class="fas fa-dollar-sign product-icon"></i>
+                    </div>
+                    <div class="product-content">
+                        <h3 class="product-title">Low-cost PM Monitor</h3>
+                        <p class="product-description">
+                            Affordable monitoring of particulate and gas concentrations. Suitable for dense network deployments or research applications.
+                        </p>
+                        <ul class="product-features">
+                            <li>Cost-effective solution</li>
+                            <li>Network deployment ready</li>
+                            <li>Multi-parameter sensing</li>
+                            <li>Long battery life</li>
+                            <li>Easy deployment</li>
+                        </ul>
+                        <div class="product-footer">
+                            <span class="product-badge">Cost Effective</span>
+                            <a href="/contact" class="enquire-btn">
+                                <i class="fas fa-paper-plane"></i> Enquire
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- HTDMA -->
+                <div class="product-card" data-category="instruments">
+                    <div class="product-image">
+                        <i class="fas fa-atom product-icon"></i>
+                    </div>
+                    <div class="product-content">
+                        <h3 class="product-title">Hygroscopic Tandem DMA (HTDMA)</h3>
+                        <p class="product-description">
+                            Hygroscopic Tandem Differential Mobility Analyzer for size-resolved particle growth analysis and hygroscopicity studies.
+                        </p>
+                        <ul class="product-features">
+                            <li>Size-resolved analysis</li>
+                            <li>Hygroscopicity measurement</li>
+                            <li>Tandem DMA configuration</li>
+                            <li>Research-grade precision</li>
+                            <li>Custom sizing range</li>
+                        </ul>
+                        <div class="product-footer">
+                            <span class="product-badge">Research Grade</span>
+                            <a href="/contact" class="enquire-btn">
+                                <i class="fas fa-paper-plane"></i> Enquire
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Testing Equipment Category -->
+        <div class="product-category fade-in" data-category="testing">
+            <div class="category-header">
+                <h2 class="category-title">
+                    <i class="fas fa-flask"></i> Testing Equipment
+                </h2>
+                <p style="color: var(--secondary-grey); max-width: 600px; margin: 0 auto;">
+                    High-automation testing systems for filters, masks, and HVAC equipment—fully compliant with international standards.
+                </p>
+            </div>
+            
+            <div class="product-grid">
+                <!-- Mask Testing System -->
+                <div class="product-card" data-category="testing">
+                    <div class="product-image">
+                        <i class="fas fa-mask product-icon"></i>
+                    </div>
+                    <div class="product-content">
+                        <h3 class="product-title">Automated Mask Testing System</h3>
+                        <p class="product-description">
+                            Automated system for fast, repeatable mask testing: penetration, resistance, and compliance checks according to international standards.
+                        </p>
+                        <ul class="product-features">
+                            <li>Automated testing protocol</li>
+                            <li>Penetration efficiency testing</li>
+                            <li>Breathing resistance measurement</li>
+                            <li>Compliance verification</li>
+                            <li>Report generation</li>
+                        </ul>
+                        <div class="product-footer">
+                            <span class="product-badge">Automated</span>
+                            <a href="/contact" class="enquire-btn">
+                                <i class="fas fa-paper-plane"></i> Enquire
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Cabin Air Filter Tester -->
+                <div class="product-card" data-category="testing">
+                    <div class="product-image">
+                        <i class="fas fa-car product-icon"></i>
+                    </div>
+                    <div class="product-content">
+                        <h3 class="product-title">Cabin Air Filter Tester</h3>
+                        <p class="product-description">
+                            Tests efficiency and pressure drop of cabin air filters as per ISO 11155 standards for automotive applications.
+                        </p>
+                        <ul class="product-features">
+                            <li>ISO 11155 compliant</li>
+                            <li>Efficiency measurement</li>
+                            <li>Pressure drop testing</li>
+                            <li>Automotive grade</li>
+                            <li>Automated reporting</li>
+                        </ul>
+                        <div class="product-footer">
+                            <span class="product-badge">ISO 11155</span>
+                            <a href="/contact" class="enquire-btn">
+                                <i class="fas fa-paper-plane"></i> Enquire
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Ventilation Filter Tester -->
+                <div class="product-card" data-category="testing">
+                    <div class="product-image">
+                        <i class="fas fa-wind product-icon"></i>
+                    </div>
+                    <div class="product-content">
+                        <h3 class="product-title">Ventilation Filter Tester</h3>
+                        <p class="product-description">
+                            Comprehensive testing for ventilation filters in accordance with ISO 16890 for air handling units and HVAC systems.
+                        </p>
+                        <ul class="product-features">
+                            <li>ISO 16890 standard</li>
+                            <li>HVAC system testing</li>
+                            <li>Multi-size compatibility</li>
+                            <li>Efficiency curves</li>
+                            <li>Performance validation</li>
+                        </ul>
+                        <div class="product-footer">
+                            <span class="product-badge">ISO 16890</span>
+                            <a href="/contact" class="enquire-btn">
+                                <i class="fas fa-paper-plane"></i> Enquire
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- HEPA Filter Tester -->
+                <div class="product-card" data-category="testing">
+                    <div class="product-image">
+                        <i class="fas fa-filter product-icon"></i>
+                    </div>
+                    <div class="product-content">
+                        <h3 class="product-title">HEPA Filter Tester</h3>
+                        <p class="product-description">
+                            Evaluates high-efficiency particulate air (HEPA) filters using international protocols for critical applications.
+                        </p>
+                        <ul class="product-features">
+                            <li>HEPA grade testing</li>
+                            <li>International protocols</li>
+                            <li>High-efficiency validation</li>
+                            <li>Critical application ready</li>
+                            <li>Leak detection</li>
+                        </ul>
+                        <div class="product-footer">
+                            <span class="product-badge">HEPA Grade</span>
+                            <a href="/contact" class="enquire-btn">
+                                <i class="fas fa-paper-plane"></i> Enquire
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sampling Systems Category -->
+        <div class="product-category fade-in" data-category="sampling">
+            <div class="category-header">
+                <h2 class="category-title">
+                    <i class="fas fa-wind"></i> Sampling Systems
+                </h2>
+                <p style="color: var(--secondary-grey); max-width: 600px; margin: 0 auto;">
+                    Advanced sampling and conditioning systems for accurate aerosol collection, processing, and analysis.
+                </p>
+            </div>
+            
+            <div class="product-grid">
+                <!-- Electrostatic Precipitator -->
+                <div class="product-card" data-category="sampling">
+                    <div class="product-image">
+                        <i class="fas fa-bolt product-icon"></i>
+                    </div>
+                    <div class="product-content">
+                        <h3 class="product-title">Electrostatic Precipitator</h3>
+                        <p class="product-description">
+                            Removes fine aerosol particles using high-voltage electrostatic fields. Available for lab & pilot setups with customizable configurations.
+                        </p>
+                        <ul class="product-features">
+                            <li>High-voltage particle removal</li>
+                            <li>Lab & pilot scale options</li>
+                            <li>Customizable configuration</li>
+                            <li>High collection efficiency</li>
+                            <li>Continuous operation</li>
+                        </ul>
+                        <div class="product-footer">
+                            <span class="product-badge">High Efficiency</span>
+                            <a href="/contact" class="enquire-btn">
+                                <i class="fas fa-paper-plane"></i> Enquire
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Aerosol Dryer -->
+                <div class="product-card" data-category="sampling">
+                    <div class="product-image">
+                        <i class="fas fa-tint product-icon"></i>
+                    </div>
+                    <div class="product-content">
+                        <h3 class="product-title">Aerosol Dryer</h3>
+                        <p class="product-description">
+                            Removes moisture from aerosol samples without altering particle properties. Essential for accurate PM measurement and analysis.
+                        </p>
+                        <ul class="product-features">
+                            <li>Moisture removal system</li>
+                            <li>Preserves particle properties</li>
+                            <li>Accurate PM measurement</li>
+                            <li>Silica gel technology</li>
+                            <li>Low maintenance</li>
+                        </ul>
+                        <div class="product-footer">
+                            <span class="product-badge">Essential</span>
+                            <a href="/contact" class="enquire-btn">
+                                <i class="fas fa-paper-plane"></i> Enquire
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Parallel Dryer System -->
+                <div class="product-card" data-category="sampling">
+                    <div class="product-image">
+                        <i class="fas fa-stream product-icon"></i>
+                    </div>
+                    <div class="product-content">
+                        <h3 class="product-title">Parallel Dryer System</h3>
+                        <p class="product-description">
+                            Parallel, high-capacity silica-gel dryers for simultaneous multi-line aerosol sampling. Ideal for research setups with multiple streams.
+                        </p>
+                        <ul class="product-features">
+                            <li>Multi-line processing</li>
+                            <li>High-capacity design</li>
+                            <li>Simultaneous sampling</li>
+                            <li>Research-grade setup</li>
+                            <li>Scalable configuration</li>
+                        </ul>
+                        <div class="product-footer">
+                            <span class="product-badge">Multi-Stream</span>
+                            <a href="/contact" class="enquire-btn">
+                                <i class="fas fa-paper-plane"></i> Enquire
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Denuder System -->
+                <div class="product-card" data-category="sampling">
+                    <div class="product-image">
+                        <i class="fas fa-chemical product-icon"></i>
+                    </div>
+                    <div class="product-content">
+                        <h3 class="product-title">Denuder System</h3>
+                        <p class="product-description">
+                            Removes volatile components from aerosols for precise composition analysis. Custom designs available for specific applications.
+                        </p>
+                        <ul class="product-features">
+                            <li>Volatile component removal</li>
+                            <li>Composition analysis</li>
+                            <li>Custom design options</li>
+                            <li>Precise measurements</li>
+                            <li>Research applications</li>
+                        </ul>
+                        <div class="product-footer">
+                            <span class="product-badge">Custom Design</span>
+                            <a href="/contact" class="enquire-btn">
+                                <i class="fas fa-paper-plane"></i> Enquire
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Multi-channel Sampler -->
+                <div class="product-card" data-category="sampling">
+                    <div class="product-image">
+                        <i class="fas fa-sitemap product-icon"></i>
+                    </div>
+                    <div class="product-content">
+                        <h3 class="product-title">8-Channel Sampler</h3>
+                        <p class="product-description">
+                            Enables simultaneous collection of aerosol or air samples from 8 channels. Fully customizable setup for comprehensive monitoring.
+                        </p>
+                        <ul class="product-features">
+                            <li>8 simultaneous channels</li>
+                            <li>Aerosol & air sampling</li>
+                            <li>Fully customizable</li>
+                            <li>Comprehensive monitoring</li>
+                            <li>Synchronized collection</li>
+                        </ul>
+                        <div class="product-footer">
+                            <span class="product-badge">8-Channel</span>
+                            <a href="/contact" class="enquire-btn">
+                                <i class="fas fa-paper-plane"></i> Enquire
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stream Switcher -->
+                <div class="product-card" data-category="sampling">
+                    <div class="product-image">
+                        <i class="fas fa-exchange-alt product-icon"></i>
+                    </div>
+                    <div class="product-content">
+                        <h3 class="product-title">2-Way Stream Switcher</h3>
+                        <p class="product-description">
+                            Enables fast switching between two aerosol streams for comparative studies or calibration procedures.
+                        </p>
+                        <ul class="product-features">
+                            <li>Fast stream switching</li>
+                            <li>Comparative studies</li>
+                            <li>Calibration support</li>
+                            <li>Automated operation</li>
+                            <li>Precise timing</li>
+                        </ul>
+                        <div class="product-footer">
+                            <span class="product-badge">Fast Switch</span>
+                            <a href="/contact" class="enquire-btn">
+                                <i class="fas fa-paper-plane"></i> Enquire
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Flow Splitter -->
+                <div class="product-card" data-category="sampling">
+                    <div class="product-image">
+                        <i class="fas fa-code-branch product-icon"></i>
+                    </div>
+                    <div class="product-content">
+                        <h3 class="product-title">Multi-Way Flow Splitter</h3>
+                        <p class="product-description">
+                            Splits air or aerosol flows into multiple streams for distributed sampling or parallel instrument testing.
+                        </p>
+                        <ul class="product-features">
+                            <li>Multi-stream splitting</li>
+                            <li>Distributed sampling</li>
+                            <li>Parallel testing</li>
+                            <li>Precise flow control</li>
+                            <li>Customizable ratios</li>
+                        </ul>
+                        <div class="product-footer">
+                            <span class="product-badge">Multi-Split</span>
+                            <a href="/contact" class="enquire-btn">
+                                <i class="fas fa-paper-plane"></i> Enquire
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Flow Meter -->
+                <div class="product-card" data-category="sampling">
+                    <div class="product-image">
+                        <i class="fas fa-tachometer-alt product-icon"></i>
+                    </div>
+                    <div class="product-content">
+                        <h3 class="product-title">Precision Flow Meter</h3>
+                        <p class="product-description">
+                            High-accuracy flowmeter for monitoring and calibrating aerosol or gas flows in the lab or field applications.
+                        </p>
+                        <ul class="product-features">
+                            <li>High-accuracy measurement</li>
+                            <li>Lab & field compatible</li>
+                            <li>Calibration support</li>
+                            <li>Digital display</li>
+                            <li>Data logging</li>
+                        </ul>
+                        <div class="product-footer">
+                            <span class="product-badge">High Accuracy</span>
+                            <a href="/contact" class="enquire-btn">
+                                <i class="fas fa-paper-plane"></i> Enquire
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Multi-point Sampler -->
+                <div class="product-card" data-category="sampling">
+                    <div class="product-image">
+                        <i class="fas fa-map-marked product-icon"></i>
+                    </div>
+                    <div class="product-content">
+                        <h3 class="product-title">Multi-point Sampler</h3>
+                        <p class="product-description">
+                            Allows sampling from multiple points, time-synced, for thorough air quality mapping or research applications.
+                        </p>
+                        <ul class="product-features">
+                            <li>Multi-point sampling</li>
+                            <li>Time synchronization</li>
+                            <li>Air quality mapping</li>
+                            <li>Research applications</li>
+                            <li>GPS coordination</li>
+                        </ul>
+                        <div class="product-footer">
+                            <span class="product-badge">Multi-Point</span>
+                            <a href="/contact" class="enquire-btn">
+                                <i class="fas fa-paper-plane"></i> Enquire
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- IoT Solutions Category -->
+        <div class="product-category fade-in" data-category="iot">
+            <div class="category-header">
+                <h2 class="category-title">
+                    <i class="fas fa-wifi"></i> IoT Solutions
+                </h2>
+                <p style="color: var(--secondary-grey); max-width: 600px; margin: 0 auto;">
+                    Advanced IoT modules and connectivity solutions for remote monitoring, data logging, and device management.
+                </p>
+            </div>
+            
+            <div class="product-grid">
+                <!-- IoT Data Logger -->
+                <div class="product-card" data-category="iot">
+                    <div class="product-image">
+                        <i class="fas fa-cloud product-icon"></i>
+                    </div>
+                    <div class="product-content">
+                        <h3 class="product-title">IoT Data Logger Module</h3>
+                        <p class="product-description">
+                            Ready-to-integrate IoT modules for live data logging, remote control, and device management with cloud connectivity.
+                        </p>
+                        <ul class="product-features">
+                            <li>Live data logging</li>
+                            <li>Remote device control</li>
+                            <li>Cloud connectivity</li>
+                            <li>Mobile app support</li>
+                            <li>Alert notifications</li>
+                        </ul>
+                        <div class="product-footer">
+                            <span class="product-badge">Cloud Ready</span>
+                            <a href="/contact" class="enquire-btn">
+                                <i class="fas fa-paper-plane"></i> Enquire
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Custom Solutions Category -->
+        <div class="product-category fade-in" data-category="custom">
+            <div class="category-header">
+                <h2 class="category-title">
+                    <i class="fas fa-cogs"></i> Custom Solutions
+                </h2>
+                <p style="color: var(--secondary-grey); max-width: 600px; margin: 0 auto;">
+                    Specialized services and custom-built solutions tailored to your unique research and industrial requirements.
+                </p>
+            </div>
+            
+            <div class="product-grid">
+                <!-- Melt-blown Equipment -->
+                <div class="product-card" data-category="custom">
+                    <div class="product-image">
+                        <i class="fas fa-industry product-icon"></i>
+                    </div>
+                    <div class="product-content">
+                        <h3 class="product-title">Melt-blown Equipment</h3>
+                        <p class="product-description">
+                            For on-site demonstration and prototyping of melt-blown nonwovens, e.g. mask/filter media development with pilot scale capabilities.
+                        </p>
+                        <ul class="product-features">
+                            <li>On-site demonstrations</li>
+                            <li>Prototype development</li>
+                            <li>Mask/filter media</li>
+                            <li>Pilot scale operation</li>
+                            <li>Process optimization</li>
+                        </ul>
+                        <div class="product-footer">
+                            <span class="product-badge">Pilot Scale</span>
+                            <a href="/contact" class="enquire-btn">
+                                <i class="fas fa-paper-plane"></i> Enquire
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3D Services -->
+                <div class="product-card" data-category="custom">
+                    <div class="product-image">
+                        <i class="fas fa-cube product-icon"></i>
+                    </div>
+                    <div class="product-content">
+                        <h3 class="product-title">3D Design & Printing Services</h3>
+                        <p class="product-description">
+                            3D design and printing services for scientific prototypes, lab tools, and experimental setups with professional-grade results.
+                        </p>
+                        <ul class="product-features">
+                            <li>Scientific prototyping</li>
+                            <li>Lab tool development</li>
+                            <li>Experimental setups</li>
+                            <li>Professional-grade printing</li>
+                            <li>Custom materials</li>
+                        </ul>
+                        <div class="product-footer">
+                            <span class="product-badge">3D Printing</span>
+                            <a href="/contact" class="enquire-btn">
+                                <i class="fas fa-paper-plane"></i> Enquire
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Custom R&D Solutions -->
+                <div class="product-card" data-category="custom">
+                    <div class="product-image">
+                        <i class="fas fa-lightbulb product-icon"></i>
+                    </div>
+                    <div class="product-content">
+                        <h3 class="product-title">Custom R&D Solutions</h3>
+                        <p class="product-description">
+                            SGN's specialty: unique, one-off solutions tailored to your scientific, academic, or industrial needs with expert consultation.
+                        </p>
+                        <ul class="product-features">
+                            <li>Unique one-off solutions</li>
+                            <li>Scientific applications</li>
+                            <li>Academic research support</li>
+                            <li>Industrial customization</li>
+                            <li>Expert consultation</li>
+                        </ul>
+                        <div class="product-footer">
+                            <span class="product-badge">Specialty</span>
+                            <a href="/contact" class="enquire-btn">
+                                <i class="fas fa-paper-plane"></i> Enquire
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stats Banner -->
+        <div class="stats-banner">
+            <div class="container" style="position: relative; z-index: 2;">
+                <div class="grid grid-4" style="gap: var(--space-2xl);">
+                    <div class="text-center">
+                        <div style="font-size: 3rem; font-weight: 800; color: var(--secondary-orange); margin-bottom: var(--space-xs); font-family: var(--font-display);">25+</div>
+                        <div style="font-size: 1.1rem; font-weight: 500; opacity: 0.9;">Product Categories</div>
+                        <div style="font-size: 0.9rem; opacity: 0.7; margin-top: var(--space-xs);">Comprehensive Range</div>
+                    </div>
+                    <div class="text-center">
+                        <div style="font-size: 3rem; font-weight: 800; color: var(--secondary-orange); margin-bottom: var(--space-xs); font-family: var(--font-display);">100%</div>
+                        <div style="font-size: 1.1rem; font-weight: 500; opacity: 0.9;">Quality Assured</div>
+                        <div style="font-size: 0.9rem; opacity: 0.7; margin-top: var(--space-xs);">Tested & Certified</div>
+                    </div>
+                    <div class="text-center">
+                        <div style="font-size: 3rem; font-weight: 800; color: var(--secondary-orange); margin-bottom: var(--space-xs); font-family: var(--font-display);">24/7</div>
+                        <div style="font-size: 1.1rem; font-weight: 500; opacity: 0.9;">Support Available</div>
+                        <div style="font-size: 0.9rem; opacity: 0.7; margin-top: var(--space-xs);">Technical Assistance</div>
+                    </div>
+                    <div class="text-center">
+                        <div style="font-size: 3rem; font-weight: 800; color: var(--secondary-orange); margin-bottom: var(--space-xs); font-family: var(--font-display);">ISO</div>
+                        <div style="font-size: 1.1rem; font-weight: 500; opacity: 0.9;">Standards Compliant</div>
+                        <div style="font-size: 0.9rem; opacity: 0.7; margin-top: var(--space-xs);">International Quality</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CTA Section -->
+        <div class="cta-section">
+            <div class="container" style="position: relative; z-index: 2;">
+                <div style="max-width: 800px; margin: 0 auto; text-align: center;">
+                    <div style="display: inline-block; background: rgba(255, 140, 0, 0.1); padding: var(--space-xs) var(--space-md); border-radius: var(--radius-round); margin-bottom: var(--space-lg); font-size: 0.9rem; font-weight: 600; color: var(--primary-orange);">
+                        <i class="fas fa-handshake"></i> Need Something Custom?
+                    </div>
+                    
+                    <h2 style="font-size: clamp(2rem, 4vw, 3rem); font-weight: 700; margin-bottom: var(--space-md); background: var(--gradient-orange); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; font-family: var(--font-display);">
+                        Let's Build Your Solution
+                    </h2>
+                    
+                    <p style="font-size: 1.25rem; color: var(--secondary-grey); margin-bottom: var(--space-xl); line-height: 1.7;">
+                        Can't find exactly what you need? Our team specializes in creating custom solutions tailored to your specific research and industrial requirements. Let's discuss your project today.
+                    </p>
+                    
+                    <div class="flex flex-wrap justify-center" style="gap: var(--space-md);">
+                        <a href="/contact" class="btn btn-primary btn-lg">
+                            <i class="fas fa-comments"></i> Discuss Your Project
+                        </a>
+                        <a href="/about_us" class="btn btn-secondary btn-lg">
+                            <i class="fas fa-users"></i> Meet Our Team
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer style="background: var(--gradient-grey); color: white; padding: var(--space-2xl) 0 var(--space-lg); position: relative; overflow: hidden;">
+        <div class="container">
+            <!-- Main Footer Content -->
+            <div class="grid grid-4" style="gap: var(--space-2xl); margin-bottom: var(--space-2xl);">
+                <!-- Company Info -->
+                <div style="grid-column: span 2;">
+                    <div style="font-family: var(--font-display); font-size: 2rem; font-weight: 900; color: var(--secondary-orange); margin-bottom: var(--space-sm);">
+                        <i class="fas fa-atom"></i> SGN Controls
+                    </div>
+                    <p style="color: #ccc; line-height: 1.6; margin-bottom: var(--space-lg); max-width: 400px;">
+                        Precision instruments, modular labs, and custom R&D solutions for air quality research and industry applications since 2018.
+                    </p>
+                    
+                    <!-- Social Links -->
+                    <div class="flex" style="gap: var(--space-sm);">
+                        <a href="#" style="width: 45px; height: 45px; background: rgba(255, 140, 0, 0.2); border: 2px solid var(--primary-orange); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--secondary-orange); transition: all var(--transition-normal);">
+                            <i class="fab fa-linkedin-in"></i>
+                        </a>
+                        <a href="#" style="width: 45px; height: 45px; background: rgba(255, 140, 0, 0.2); border: 2px solid var(--primary-orange); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--secondary-orange); transition: all var(--transition-normal);">
+                            <i class="fab fa-twitter"></i>
+                        </a>
+                        <a href="#" style="width: 45px; height: 45px; background: rgba(255, 140, 0, 0.2); border: 2px solid var(--primary-orange); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--secondary-orange); transition: all var(--transition-normal);">
+                            <i class="fab fa-facebook-f"></i>
+                        </a>
+                        <a href="#" style="width: 45px; height: 45px; background: rgba(255, 140, 0, 0.2); border: 2px solid var(--primary-orange); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--secondary-orange); transition: all var(--transition-normal);">
+                            <i class="fab fa-instagram"></i>
+                        </a>
+                    </div>
+                </div>
+                
+                <!-- Product Categories -->
+                <div>
+                    <h4 style="color: var(--secondary-orange); margin-bottom: var(--space-md); font-size: 1.2rem; font-weight: 600;">Product Categories</h4>
+                    <ul style="list-style: none; padding: 0;">
+                        <li style="margin-bottom: var(--space-sm);"><a href="#" style="color: #ccc; transition: all var(--transition-normal);">Mobile Labs</a></li>
+                        <li style="margin-bottom: var(--space-sm);"><a href="#" style="color: #ccc; transition: all var(--transition-normal);">Research Instruments</a></li>
+                        <li style="margin-bottom: var(--space-sm);"><a href="#" style="color: #ccc; transition: all var(--transition-normal);">Testing Equipment</a></li>
+                        <li style="margin-bottom: var(--space-sm);"><a href="#" style="color: #ccc; transition: all var(--transition-normal);">IoT Solutions</a></li>
+                    </ul>
+                </div>
+                
+                <!-- Quick Links -->
+                <div>
+                    <h4 style="color: var(--secondary-orange); margin-bottom: var(--space-md); font-size: 1.2rem; font-weight: 600;">Quick Links</h4>
+                    <ul style="list-style: none; padding: 0;">
+                        <li style="margin-bottom: var(--space-sm);"><a href="/" style="color: #ccc; transition: all var(--transition-normal);">Home</a></li>
+                        <li style="margin-bottom: var(--space-sm);"><a href="/products" style="color: #ccc; transition: all var(--transition-normal);">Products</a></li>
+                        <li style="margin-bottom: var(--space-sm);"><a href="/about_us" style="color: #ccc; transition: all var(--transition-normal);">About Us</a></li>
+                        <li style="margin-bottom: var(--space-sm);"><a href="/contact" style="color: #ccc; transition: all var(--transition-normal);">Contact</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- Footer Bottom -->
+            <div style="border-top: 1px solid rgba(255, 255, 255, 0.1); padding-top: var(--space-lg); text-center; color: #999;">
+                <p>&copy; 2024 SGN Controls. All rights reserved. | 
+                   <a href="#" style="color: #999;">Privacy Policy</a> | 
+                   <a href="#" style="color: #999;">Terms of Service</a>
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript -->
+    <script>
+        // Page Loading
+        window.addEventListener('load', function() {
+            setTimeout(() => {
+                document.getElementById('loader').classList.add('hidden');
+            }, 1000);
+        });
+
+        // Particle Background Creation
+        function createParticles() {
+            const particlesContainer = document.getElementById('particles');
+            const particleCount = 30;
+
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + 'vw';
+                particle.style.animationDelay = Math.random() * 15 + 's';
+                particle.style.animationDuration = (15 + Math.random() * 10) + 's';
+                particlesContainer.appendChild(particle);
+            }
+        }
+
+        // Navigation Scroll Effect
+        window.addEventListener('scroll', function() {
+            const navbar = document.getElementById('navbar');
+            if (window.scrollY > 100) {
+                navbar.classList.add('scrolled');
+            } else {
+                navbar.classList.remove('scrolled');
+            }
+        });
+
+        // Mobile Navigation Toggle
+        const navToggle = document.getElementById('nav-toggle');
+        const navMenu = document.getElementById('nav-menu');
+
+        navToggle.addEventListener('click', function() {
+            navMenu.classList.toggle('active');
+        });
+
+        // Product Filtering
+        const filterButtons = document.querySelectorAll('.filter-btn');
+        const productCards = document.querySelectorAll('.product-card');
+        const productCategories = document.querySelectorAll('.product-category');
+
+        filterButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const category = this.getAttribute('data-category');
+                
+                // Update active button
+                filterButtons.forEach(btn => btn.classList.remove('active'));
+                this.classList.add('active');
+                
+                // Filter products
+                if (category === 'all') {
+                    productCategories.forEach(cat => {
+                        cat.style.display = 'block';
+                    });
+                    productCards.forEach(card => {
+                        card.style.display = 'block';
+                    });
+                } else {
+                    productCategories.forEach(cat => {
+                        if (cat.getAttribute('data-category') === category) {
+                            cat.style.display = 'block';
+                        } else {
+                            cat.style.display = 'none';
+                        }
+                    });
+                    
+                    productCards.forEach(card => {
+                        if (card.getAttribute('data-category') === category) {
+                            card.style.display = 'block';
+                        } else {
+                            card.style.display = 'none';
+                        }
+                    });
+                }
+            });
+        });
+
+        // Search Functionality
+        const searchInput = document.getElementById('searchInput');
+        
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            
+            productCards.forEach(card => {
+                const title = card.querySelector('.product-title').textContent.toLowerCase();
+                const description = card.querySelector('.product-description').textContent.toLowerCase();
+                
+                if (title.includes(searchTerm) || description.includes(searchTerm)) {
+                    card.style.display = 'block';
+                    card.closest('.product-category').style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+            
+            // Hide empty categories
+            productCategories.forEach(category => {
+                const visibleCards = category.querySelectorAll('.product-card[style="display: block;"], .product-card:not([style*="display: none"])');
+                if (visibleCards.length === 0 && searchTerm !== '') {
+                    category.style.display = 'none';
+                } else if (searchTerm === '') {
+                    category.style.display = 'block';
+                }
+            });
+        });
+
+        // Intersection Observer for Animations
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, observerOptions);
+
+        // Initialize on DOM Content Loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            createParticles();
+            
+            // Observe all fade-in elements
+            document.querySelectorAll('.fade-in').forEach(el => {
+                observer.observe(el);
+            });
+
+            // Product card hover effects
+            document.querySelectorAll('.product-card').forEach(card => {
+                card.addEventListener('mouseenter', function() {
+                    const icon = this.querySelector('.product-icon');
+                    if (icon) {
+                        icon.style.transform = 'scale(1.1) rotate(5deg)';
+                    }
+                });
+                
+                card.addEventListener('mouseleave', function() {
+                    const icon = this.querySelector('.product-icon');
+                    if (icon) {
+                        icon.style.transform = 'scale(1) rotate(0deg)';
+                    }
+                });
+            });
+
+            // Social links hover effects
+            document.querySelectorAll('footer a[style*="border-radius: 50%"]').forEach(link => {
+                link.addEventListener('mouseenter', function() {
+                    this.style.background = 'var(--gradient-orange)';
+                    this.style.color = 'white';
+                    this.style.transform = 'translateY(-3px) scale(1.1)';
+                });
+                
+                link.addEventListener('mouseleave', function() {
+                    this.style.background = 'rgba(255, 140, 0, 0.2)';
+                    this.style.color = 'var(--secondary-orange)';
+                    this.style.transform = 'translateY(0) scale(1)';
+                });
+            });
+
+            // Smooth scrolling for anchor links
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    const target = document.querySelector(this.getAttribute('href'));
+                    if (target) {
+                        target.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'start'
+                        });
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
