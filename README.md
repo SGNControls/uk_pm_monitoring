@@ -223,9 +223,25 @@ The following files are automatically configured for Railway:
 - ✅ **Automatic PostgreSQL** - Database provisioning
 - ✅ **Health Checks** - Automatic monitoring
 - ✅ **SSL Certificates** - Free HTTPS included
+- ✅ **WebSocket Support** - Real-time data streaming
 - ✅ **Auto-scaling** - Scales with traffic
 - ✅ **Environment Variables** - Secure configuration
 - ✅ **Build Caching** - Faster deployments
+
+#### WebSocket Configuration
+
+Railway requires specific configuration for WebSocket connections:
+
+- **`railway.json`** - Enables `websocketSupport: true`
+- **`entrypoint.sh`** - Proper port handling for Railway
+- **SocketIO Config** - Railway-specific CORS and timeout settings
+- **Docker Build** - Uses Dockerfile builder with WebSocket support
+
+**WebSocket Features:**
+- Real-time sensor data updates
+- Live chart streaming
+- Device status notifications
+- Multi-user room support
 
 ### AWS EC2 Setup (Alternative)
 

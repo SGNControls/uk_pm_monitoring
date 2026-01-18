@@ -48,7 +48,27 @@ else:
     app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 
 # Initialize extensions
-socketio = SocketIO(app, cors_allowed_origins="*", async_mode='eventlet', logging=False, engineio_logging=False)
+# Configure SocketIO for Railway compatibility
+socketio_config = {
+    'cors_allowed_origins': "*",
+    'async_mode': 'eventlet',
+    'logging': False,
+    'engineio_logging': False,
+    'ping_timeout': 60,
+    'ping_interval': 25,
+    'max_http_buffer_size': 1000000,
+    'transports': ['polling', 'websocket']  # Allow both polling and websocket
+}
+
+# Add Railway-specific CORS if running on Railway
+if os.getenv('RAILWAY_ENVIRONMENT'):
+    socketio_config.update({
+        'cors_allowed_origins': ["https://*.up.railway.app", "https://*.railway.app"],
+        'cors_credentials': True,
+        'cors_headers': ['Content-Type', 'Authorization', 'X-Requested-With']
+    })
+
+socketio = SocketIO(app, **socketio_config)
 cache = Cache(config={'CACHE_TYPE': 'SimpleCache'})
 cache.init_app(app)
 
