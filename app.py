@@ -2283,29 +2283,33 @@ def emit_device_update(device_id, data):
     socketio.emit('new_data', data, room=f'device_{device_id}')
 
 
+# Initialize MQTT clients when module is imported (for Railway)
+logging.info("[STARTUP] 🚀 Railway Flask app initialization...")
+logging.info("[STARTUP] Environment check:")
+logging.info(f"[STARTUP]   RAILWAY_ENVIRONMENT: {os.getenv('RAILWAY_ENVIRONMENT', 'NOT SET')}")
+logging.info(f"[STARTUP]   DATABASE_URL: {'SET' if os.getenv('DATABASE_URL') else 'NOT SET'}")
+logging.info(f"[STARTUP]   PORT: {os.getenv('PORT', 'NOT SET')}")
+
+logging.info("[STARTUP] 🗄️ Initializing database...")
+initialize_database()
+
+logging.info("[STARTUP] 📡 Initializing MQTT clients...")
+initialize_mqtt_clients()
+
+logging.info("[STARTUP] ✨ Railway Flask app ready!")
+
 if __name__ == '__main__':
+    # Local development startup
     try:
-        logging.info("[STARTUP] 🚀 Beginning application startup...")
-        logging.info("[STARTUP] Environment check:")
-        logging.info(f"[STARTUP]   RAILWAY_ENVIRONMENT: {os.getenv('RAILWAY_ENVIRONMENT', 'NOT SET')}")
-        logging.info(f"[STARTUP]   DATABASE_URL: {'SET' if os.getenv('DATABASE_URL') else 'NOT SET'}")
-        logging.info(f"[STARTUP]   PORT: {os.getenv('PORT', 'NOT SET')}")
-
-        logging.info("[STARTUP] 📡 Initializing MQTT clients...")
-        initialize_mqtt_clients()
-
-        logging.info("[STARTUP] 🗄️ Initializing database...")
-        initialize_database()
-
-        logging.info("[STARTUP] ✨ Starting Flask application...")
+        logging.info("[LOCAL] Starting Flask application for local development...")
         socketio.run(app,
                     host=os.getenv('FLASK_HOST', '0.0.0.0'),
                     port=int(os.getenv('FLASK_PORT', 5000)),
                     debug=os.getenv('FLASK_DEBUG', 'false').lower() == 'true')
     except KeyboardInterrupt:
-        logging.info("[STARTUP] Application shutting down...")
+        logging.info("[LOCAL] Application shutting down...")
     except Exception as e:
-        logging.error(f"[STARTUP] 💥 Application startup failed: {e}")
+        logging.error(f"[LOCAL] 💥 Application startup failed: {e}")
         import traceback
         traceback.print_exc()
         sys.exit(1)
