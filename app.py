@@ -34,9 +34,18 @@ load_dotenv()
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'your-secret-key-here')
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=1)
-app.config['SESSION_COOKIE_SECURE'] = False
-app.config['SESSION_COOKIE_HTTPONLY'] = True
-app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+
+# Railway-specific configuration
+if os.getenv('RAILWAY_ENVIRONMENT'):
+    # Production settings for Railway
+    app.config['SESSION_COOKIE_SECURE'] = True
+    app.config['SESSION_COOKIE_HTTPONLY'] = True
+    app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+else:
+    # Development settings
+    app.config['SESSION_COOKIE_SECURE'] = False
+    app.config['SESSION_COOKIE_HTTPONLY'] = True
+    app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 
 # Initialize extensions
 socketio = SocketIO(app, cors_allowed_origins="*", async_mode='eventlet', logging=False, engineio_logging=False)
@@ -51,13 +60,29 @@ logging.basicConfig(level=logging.INFO)
 logging = logging.getLogger(__name__)
 
 # Database configuration
-DB_CONFIG = {
-    "host": os.getenv('DB_HOST'),
-    "database": os.getenv('DB_NAME'),
-    "user": os.getenv('DB_USER'),
-    "password": os.getenv('DB_PASSWORD'),
-    "port": os.getenv('DB_PORT')
-}
+# Railway provides DATABASE_URL, but we'll also support individual variables for compatibility
+DATABASE_URL = os.getenv('DATABASE_URL')
+
+if DATABASE_URL:
+    # Parse Railway DATABASE_URL
+    import urllib.parse
+    parsed = urllib.parse.urlparse(DATABASE_URL)
+    DB_CONFIG = {
+        "host": parsed.hostname,
+        "database": parsed.path.lstrip('/'),
+        "user": parsed.username,
+        "password": parsed.password,
+        "port": parsed.port or 5432
+    }
+else:
+    # Fallback to individual environment variables
+    DB_CONFIG = {
+        "host": os.getenv('DB_HOST'),
+        "database": os.getenv('DB_NAME'),
+        "user": os.getenv('DB_USER'),
+        "password": os.getenv('DB_PASSWORD'),
+        "port": int(os.getenv('DB_PORT', 5432))
+    }
 
 # Initialize database connection pool
 try:

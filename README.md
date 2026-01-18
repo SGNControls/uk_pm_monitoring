@@ -169,7 +169,65 @@ gunicorn -k eventlet -w 1 app:app --bind 0.0.0.0:5000
 
 ## 🌐 Production Deployment
 
-### AWS EC2 Setup
+### Railway Deployment (Recommended)
+
+Railway provides a simple, scalable cloud platform for deploying your PM Monitoring Dashboard.
+
+#### 🚀 Quick Railway Deploy
+
+1. **Connect Repository**
+   ```bash
+   # Push your code to GitHub/GitLab
+   git add .
+   git commit -m "Railway deployment configuration"
+   git push origin main
+   ```
+
+2. **Deploy on Railway**
+   - Go to [Railway.app](https://railway.app) and sign up/login
+   - Click "New Project" → "Deploy from GitHub"
+   - Select your repository
+   - Railway will automatically detect and use the configuration files
+
+3. **Database Setup**
+   - Railway automatically provisions PostgreSQL
+   - The `DATABASE_URL` environment variable is set automatically
+   - No additional database configuration needed!
+
+4. **Environment Variables**
+   Railway automatically detects these from your code:
+   - `SECRET_KEY` - Auto-generated secure key
+   - `DATABASE_URL` - PostgreSQL connection string
+   - `PORT` - Dynamic port assignment
+
+5. **Verify Deployment**
+   ```bash
+   # Test locally first
+   python test_deployment.py
+
+   # Check Railway logs for any issues
+   ```
+
+#### Railway Configuration Files
+
+The following files are automatically configured for Railway:
+
+- **`railway.json`** - Railway-specific deployment settings
+- **`Procfile`** - Process management for Railway
+- **`Dockerfile`** - Containerized deployment (optional)
+- **`requirements.txt`** - Python dependencies
+- **`.env.example`** - Environment variable documentation
+
+#### Railway Features Used
+
+- ✅ **Automatic PostgreSQL** - Database provisioning
+- ✅ **Health Checks** - Automatic monitoring
+- ✅ **SSL Certificates** - Free HTTPS included
+- ✅ **Auto-scaling** - Scales with traffic
+- ✅ **Environment Variables** - Secure configuration
+- ✅ **Build Caching** - Faster deployments
+
+### AWS EC2 Setup (Alternative)
 
 ```bash
 # System packages
@@ -180,7 +238,7 @@ sudo apt install python3-venv python3-pip postgresql nginx git certbot python3-c
 sudo nano /etc/nginx/sites-available/pm-monitoring
 ```
 
-### Nginx Configuration
+#### Nginx Configuration
 
 ```nginx
 server {
@@ -201,7 +259,7 @@ server {
 }
 ```
 
-### SSL Certificate
+#### SSL Certificate
 
 ```bash
 sudo ln -s /etc/nginx/sites-available/pm-monitoring /etc/nginx/sites-enabled/
@@ -397,5 +455,5 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ⭐ **Star this repository if it helped you!**
 
 </div>
-#   u k _ p m _ m o n i t o r i n g  
+#   u k _ p m _ m o n i t o r i n g 
  
