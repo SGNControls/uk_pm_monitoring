@@ -95,7 +95,8 @@ function initializeWebSocket() {
         socket.on('new_data', function(data) {
             if (String(data.device_id) === String(currentDeviceId)) {
                 console.log('📡 Received WebSocket sensor data');
-                safeProcessIncomingData(data);
+                // WebSocket data is for real-time updates only - don't replace charts
+                processWebSocketData(data);
             }
         });
 
@@ -424,6 +425,53 @@ function updateDeviceInfoPanel(name, deviceId, type, hasRelay) {
     }
 }
 
+// WebSocket data processing - for real-time updates only
+function processWebSocketData(data) {
+    try {
+        if (!data) {
+            console.warn('No WebSocket data received');
+            return;
+        }
+
+        console.log('📡 Processing WebSocket data:', data);
+
+        // WebSocket data is for real-time updates only
+        // Don't replace chart history data, just update current readings
+
+        // Update sensor readings if available
+        if (data.sensor) {
+            updatePMReadings(data.sensor);
+            updateQuickStats({ sensor: data.sensor });
+            updateAQI({ sensor: data.sensor });
+            checkThresholds({
+                sensor: data.sensor,
+                status: data.status || { thresholds: latestData?.status?.thresholds }
+            });
+        }
+
+        // Update connection status
+        updateConnectionStatus(true);
+
+        // Update last update time
+        if (data.sensor && data.sensor.timestamp) {
+            const lastUpdate = document.getElementById('lastUpdate');
+            const readingsTime = document.getElementById('readingsTime');
+            const lastUpdateTime = document.getElementById('lastUpdateTime');
+
+            const timeStr = new Date(data.sensor.timestamp).toLocaleTimeString();
+
+            if (lastUpdate) lastUpdate.textContent = new Date(data.sensor.timestamp).toLocaleString();
+            if (readingsTime) readingsTime.textContent = timeStr;
+            if (lastUpdateTime) lastUpdateTime.textContent = timeStr;
+        }
+
+        console.log('✅ WebSocket data processed successfully');
+
+    } catch (error) {
+        console.error('❌ Error processing WebSocket data:', error);
+    }
+}
+
 function safeProcessIncomingData(data) {
     try {
         if (!data) {
@@ -432,15 +480,15 @@ function safeProcessIncomingData(data) {
         }
 
         console.log('Processing incoming data:', data);
-        
+
         // Normalize the data
         const normalizedData = normalizeIncomingData(data);
-        
+
         if (!normalizedData) {
             console.error('Failed to normalize data');
             return;
         }
-        
+
         // Convert timestamps safely
         if (normalizedData.history && normalizedData.history.timestamps) {
             normalizedData.history.timestamps = normalizedData.history.timestamps.map(t => {
@@ -452,7 +500,7 @@ function safeProcessIncomingData(data) {
                 }
             });
         }
-        
+
         // Call all update functions
         updateDashboard(normalizedData);
         updateCharts(normalizedData);
@@ -461,13 +509,13 @@ function safeProcessIncomingData(data) {
         calculateThresholdFrequency(normalizedData);
         updateQuickStats(normalizedData);
         updateAQI(normalizedData);
-        
+
         // Handle extended data
         if (normalizedData.extended) {
             console.log('Calling updateExtendedData with:', normalizedData.extended);
             updateExtendedData(normalizedData.extended);
         }
-        
+
     } catch (error) {
         console.error('Error processing incoming data:', error);
     }
