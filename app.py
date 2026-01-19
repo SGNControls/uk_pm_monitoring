@@ -60,12 +60,19 @@ socketio_config = {
     'transports': ['polling', 'websocket']  # Allow both polling and websocket
 }
 
-# Add Railway-specific CORS if running on Railway
+# Add Railway-specific CORS - be very permissive for WebSocket connections
 if os.getenv('RAILWAY_ENVIRONMENT'):
     socketio_config.update({
-        'cors_allowed_origins': ["https://*.up.railway.app", "https://*.railway.app"],
+        'cors_allowed_origins': "*",
         'cors_credentials': True,
-        'cors_headers': ['Content-Type', 'Authorization', 'X-Requested-With']
+        'cors_methods': ['GET', 'POST', 'OPTIONS'],
+        'cors_headers': ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin']
+    })
+else:
+    # For local development, also be permissive
+    socketio_config.update({
+        'cors_allowed_origins': "*",
+        'cors_credentials': True
     })
 
 socketio = SocketIO(app, **socketio_config)

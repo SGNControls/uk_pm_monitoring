@@ -45,7 +45,8 @@ function initializeWebSocket() {
             reconnectionDelay: 2000, // Increase delay
             timeout: 10000, // Reduce timeout
             forceNew: false,
-            upgrade: true
+            upgrade: true,
+            withCredentials: true // Send cookies for authentication
         });
 
         // Connection event handlers
@@ -553,7 +554,9 @@ function loadEnvironmentalDataCards() {
     }
 
     // Fetch live data from backend API
-    fetch(`/api/data?hours=1&deviceid=${currentDeviceId}`)
+    fetch(`/api/data?hours=1&deviceid=${currentDeviceId}`, {
+        credentials: 'same-origin'
+    })
         .then(response => {
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
@@ -1249,7 +1252,9 @@ function fetchData(hours = 24) {
 
     const loadingIndicator = showLoading();
     
-    fetch(`/api/data?hours=${encodeURIComponent(hours)}&avg_window=${encodeURIComponent(currentAvgWindow)}&deviceid=${encodeURIComponent(currentDeviceId)}`)
+    fetch(`/api/data?hours=${encodeURIComponent(hours)}&avg_window=${encodeURIComponent(currentAvgWindow)}&deviceid=${encodeURIComponent(currentDeviceId)}`, {
+        credentials: 'same-origin'
+    })
         .then(response => {
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
