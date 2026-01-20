@@ -156,6 +156,7 @@ const colorScheme = {
     pressure: 'rgba(132, 99, 255, 0.8)',
     voc: 'rgba(255, 206, 86, 0.8)',
     no2: 'rgba(255, 99, 159, 0.8)',
+    noise: 'rgba(159, 99, 255, 0.8)',
     speed: 'rgba(64, 159, 255, 0.8)',
     cloud: 'rgba(192, 192, 192, 0.8)'
 };
@@ -297,7 +298,8 @@ function getParameterLabel(param) {
         'humidity_percent': 'Humidity (%)',
         'pressure_hpa': 'Pressure (hPa)',
         'voc_ppb': 'VOC (ppb)',
-        'no2_ppb': 'NO₂ (ppb)',
+        'no2_ppb': 'NO₂_index',
+        'noise_db': 'noise_level_index',
         'gps_speed_kmh': 'Speed (km/h)',
         'cloud_cover_percent': 'Cloud Cover (%)'
     };
@@ -674,7 +676,7 @@ function createEnvironmentalDataCards(extendedData, sensorData) {
             label: 'NO₂',
             icon: 'bi-cloud-haze2',
             color: 'warning',
-            unit: ' ppb',
+            unit: '',
             data: extendedData.no2_ppb
         },
         {
@@ -1035,7 +1037,7 @@ function initializeExtendedCharts() {
     }
 
     // Individual parameter charts
-    ['vocChart'].forEach(chartId => {
+    ['vocChart', 'no2Chart', 'noiseChart'].forEach(chartId => {
         const canvas = document.getElementById(chartId);
         if (canvas) {
             const param = chartId.replace('Chart', '');
@@ -1911,8 +1913,8 @@ function updateExtendedData(extendedData) {
     updateEnvironmentalCard('currentHumidity', extendedData.humidity_percent, '%');
     updateEnvironmentalCard('currentPressure', extendedData.pressure_hpa, ' hPa');
     updateEnvironmentalCard('currentVOC', extendedData.voc_ppb, ' ppb');
-    updateEnvironmentalCard('currentNO2', extendedData.no2_ppb, ' ppb');
-    updateEnvironmentalCard('currentNoise', extendedData.noise_db, ' dB');
+    updateEnvironmentalCard('currentNO2', extendedData.no2_ppb, '');
+    updateEnvironmentalCard('currentNoise', extendedData.noise_db, '');
     updateEnvironmentalCard('currentCloudCover', extendedData.cloud_cover_percent, '%');
     updateEnvironmentalCard('currentLux', extendedData.lux, ' lux');
     updateEnvironmentalCard('currentUV', extendedData.uv_index, '');
@@ -2519,6 +2521,17 @@ function updateIndividualExtendedCharts(data) {
             charts.no2Chart.data.datasets[0].data = no2Data;
             safeChartUpdate(charts.no2Chart, 'no2Chart');
             console.log('Updated NO2 chart with', no2Data.length, 'data points');
+        }
+    }
+
+    // Noise Chart
+    if (charts.noiseChart) {
+        const noiseData = extendedHistory.noise_db || [];
+        if (noiseData.length > 0) {
+            charts.noiseChart.data.labels = timestamps;
+            charts.noiseChart.data.datasets[0].data = noiseData;
+            safeChartUpdate(charts.noiseChart, 'noiseChart');
+            console.log('Updated Noise chart with', noiseData.length, 'data points');
         }
     }
 

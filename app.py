@@ -2261,6 +2261,7 @@ def export_csv():
             </body></html>
             """, 400)
 
+        # Get sensor data (PM values)
         cur.execute("""
             SELECT timestamp, pm1, pm2_5, pm4, pm10, tsp
             FROM dust_sensor_data
@@ -2269,9 +2270,22 @@ def export_csv():
             ORDER BY timestamp ASC
         """, (device_id, start_datetime, end_datetime))
 
-        data = cur.fetchall()
+        sensor_data = cur.fetchall()
 
-        if not data:
+        # Get extended environmental data
+        cur.execute("""
+            SELECT timestamp, temperature_c, humidity_percent, pressure_hpa,
+                   voc_ppb, no2_ppb, noise_db, gps_lat, gps_lon, gps_alt_m,
+                   gps_speed_kmh, cloud_cover_percent, lux, uv_index, battery_percent
+            FROM dust_extended_data
+            WHERE device_id = %s
+            AND timestamp BETWEEN %s AND %s
+            ORDER BY timestamp ASC
+        """, (device_id, start_datetime, end_datetime))
+
+        extended_data = cur.fetchall()
+
+        if not sensor_data and not extended_data:
             return make_response(f"""
             <html><body>
             <h1>Export Error</h1>
@@ -2285,16 +2299,84 @@ def export_csv():
 
         si = io.StringIO()
         cw = csv.writer(si)
-        cw.writerow(["Timestamp", "PM1", "PM2.5", "PM4", "PM10", "TSP"])
 
-        for row in data:
+        # CSV headers for comprehensive data
+        headers = [
+            "Timestamp", "PM1", "PM2.5", "PM4", "PM10", "TSP",
+            "Temperature_C", "Humidity_%", "Pressure_hPa", "VOC_ppb", "NO2_index",
+            "noise_level_index", "GPS_Lat", "GPS_Lon", "Lux", "UV_Index"
+        ]
+        cw.writerow(headers)
+
+        # Combine sensor and extended data by timestamp
+        # Create a dictionary to merge data by timestamp
+        data_by_timestamp = {}
+
+        # Add sensor data
+        for row in sensor_data:
+            timestamp = row[0].isoformat() if row[0] else ''
+            data_by_timestamp[timestamp] = {
+                'pm1': row[1] or 0,
+                'pm2_5': row[2] or 0,
+                'pm4': row[3] or 0,
+                'pm10': row[4] or 0,
+                'tsp': row[5] or 0,
+                'temperature_c': None,
+                'humidity_percent': None,
+                'pressure_hpa': None,
+                'voc_ppb': None,
+                'no2_ppb': None,
+                'noise_db': None,
+                'gps_lat': None,
+                'gps_lon': None,
+                'gps_alt_m': None,
+                'gps_speed_kmh': None,
+                'cloud_cover_percent': None,
+                'lux': None,
+                'uv_index': None,
+                'battery_percent': None
+            }
+
+        # Add extended data
+        for row in extended_data:
+            timestamp = row[0].isoformat() if row[0] else ''
+            if timestamp not in data_by_timestamp:
+                data_by_timestamp[timestamp] = {
+                    'pm1': 0, 'pm2_5': 0, 'pm4': 0, 'pm10': 0, 'tsp': 0,
+                    'temperature_c': None, 'humidity_percent': None, 'pressure_hpa': None,
+                    'voc_ppb': None, 'no2_ppb': None, 'noise_db': None,
+                    'gps_lat': None, 'gps_lon': None, 'gps_alt_m': None, 'gps_speed_kmh': None,
+                    'cloud_cover_percent': None, 'lux': None, 'uv_index': None, 'battery_percent': None
+                }
+
+            # Update with extended data
+            data_by_timestamp[timestamp].update({
+                'temperature_c': row[1],
+                'humidity_percent': row[2],
+                'pressure_hpa': row[3],
+                'voc_ppb': row[4],
+                'no2_ppb': row[5],
+                'noise_db': row[6],
+                'gps_lat': row[7],
+                'gps_lon': row[8],
+                'gps_alt_m': row[9],
+                'gps_speed_kmh': row[10],
+                'cloud_cover_percent': row[11],
+                'lux': row[12],
+                'uv_index': row[13],
+                'battery_percent': row[14]
+            })
+
+        # Sort by timestamp and write rows
+        sorted_timestamps = sorted(data_by_timestamp.keys())
+        for timestamp in sorted_timestamps:
+            row = data_by_timestamp[timestamp]
             cw.writerow([
-                row[0].isoformat() if row[0] else '',
-                row[1] or 0,
-                row[2] or 0,
-                row[3] or 0,
-                row[4] or 0,
-                row[5] or 0
+                timestamp,
+                row['pm1'], row['pm2_5'], row['pm4'], row['pm10'], row['tsp'],
+                row['temperature_c'], row['humidity_percent'], row['pressure_hpa'],
+                row['voc_ppb'], row['no2_ppb'], row['noise_db'],
+                row['gps_lat'], row['gps_lon'], row['lux'], row['uv_index']
             ])
 
         output = make_response(si.getvalue())
