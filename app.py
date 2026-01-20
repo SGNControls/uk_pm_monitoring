@@ -1626,7 +1626,7 @@ def get_data():
 
         # Get latest sensor data
         cur.execute("""
-            SELECT (timestamp AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Kolkata') as timestamp,
+            SELECT (timestamp AT TIME ZONE 'UTC' AT TIME ZONE 'GMT') as timestamp,
                    pm1, pm2_5, pm4, pm10, tsp
             FROM dust_sensor_data
             WHERE device_id = %s
@@ -1649,7 +1649,7 @@ def get_data():
 
         # Get history for chart
         cur.execute("""
-            SELECT (timestamp AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Kolkata') as time_bucket,
+            SELECT (timestamp AT TIME ZONE 'UTC' AT TIME ZONE 'GMT') as time_bucket,
                    pm1, pm2_5, pm4, pm10, tsp
             FROM dust_sensor_data
             WHERE device_id = %s AND timestamp >= NOW() - INTERVAL %s
@@ -1724,7 +1724,7 @@ def get_data():
         try:
             # Get extended data history for charts - INCLUDE ALL PARAMETERS
             cur.execute("""
-                SELECT (timestamp AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Kolkata') as timestamp,
+                SELECT (timestamp AT TIME ZONE 'UTC' AT TIME ZONE 'GMT') as timestamp,
                        temperature_c, humidity_percent, pressure_hpa,
                        voc_ppb, no2_ppb, noise_db, gps_speed_kmh, cloud_cover_percent,
                        lux, uv_index, battery_percent
@@ -2177,7 +2177,6 @@ def stream():
 
 
 @app.route('/api/export_csv')
-@login_required
 def export_csv():
     """Export sensor data as CSV"""
     start_date = request.args.get('start_date')
@@ -2185,10 +2184,26 @@ def export_csv():
     device_id = request.args.get('deviceid')
 
     if not start_date or not end_date:
-        return jsonify({"error": "Both start_date and end_date parameters are required"}), 400
+        # Return HTML error page instead of JSON for file download
+        return make_response(f"""
+        <html><body>
+        <h1>Export Error</h1>
+        <p>Error: Both start_date and end_date parameters are required</p>
+        <p>Start date: {start_date}</p>
+        <p>End date: {end_date}</p>
+        <script>window.close();</script>
+        </body></html>
+        """, 400)
 
     if not device_id:
-        return jsonify({"error": "Device ID parameter is required"}), 400
+        return make_response(f"""
+        <html><body>
+        <h1>Export Error</h1>
+        <p>Error: Device ID parameter is required</p>
+        <p>Device ID: {device_id}</p>
+        <script>window.close();</script>
+        </body></html>
+        """, 400)
 
     conn = None
     try:
@@ -2204,15 +2219,47 @@ def export_csv():
                 # For demo purposes, check if device exists at all
                 cur.execute("SELECT id FROM dust_devices WHERE id = %s", (device_id,))
                 if not cur.fetchone():
-                    return jsonify({"error": "Device not found"}), 404
+                    return make_response(f"""
+                    <html><body>
+                    <h1>Export Error</h1>
+                    <p>Error: Device not found</p>
+                    <p>Device ID: {device_id}</p>
+                    <script>window.close();</script>
+                    </body></html>
+                    """, 404)
                 # Allow export for demo if device exists (bypass ownership)
                 logging.warning(f"Export allowed for demo purposes - device {device_id} owned by different user")
         except Exception as e:
             # If current_user is not available (demo mode), allow export if device exists
             cur.execute("SELECT id FROM dust_devices WHERE id = %s", (device_id,))
             if not cur.fetchone():
-                return jsonify({"error": "Device not found"}), 404
+                return make_response(f"""
+                <html><body>
+                <h1>Export Error</h1>
+                <p>Error: Device not found</p>
+                <p>Device ID: {device_id}</p>
+                <script>window.close();</script>
+                </body></html>
+                """, 404)
             logging.warning(f"Export allowed for demo purposes - auth bypassed for device {device_id}")
+
+        # Convert date strings to proper PostgreSQL timestamp format
+        try:
+            start_datetime = datetime.strptime(start_date, '%Y-%m-%d')
+            end_datetime = datetime.strptime(end_date, '%Y-%m-%d')
+            # Set end date to end of day
+            end_datetime = end_datetime.replace(hour=23, minute=59, second=59)
+        except ValueError as e:
+            return make_response(f"""
+            <html><body>
+            <h1>Export Error</h1>
+            <p>Error: Invalid date format. Expected YYYY-MM-DD</p>
+            <p>Start date: {start_date}</p>
+            <p>End date: {end_date}</p>
+            <p>Details: {str(e)}</p>
+            <script>window.close();</script>
+            </body></html>
+            """, 400)
 
         cur.execute("""
             SELECT timestamp, pm1, pm2_5, pm4, pm10, tsp
@@ -2220,12 +2267,21 @@ def export_csv():
             WHERE device_id = %s
             AND timestamp BETWEEN %s AND %s
             ORDER BY timestamp ASC
-        """, (device_id, start_date, end_date))
+        """, (device_id, start_datetime, end_datetime))
 
         data = cur.fetchall()
 
         if not data:
-            return jsonify({"error": "No data found for the selected date range"}), 404
+            return make_response(f"""
+            <html><body>
+            <h1>Export Error</h1>
+            <p>No data found for the selected date range</p>
+            <p>Device ID: {device_id}</p>
+            <p>Date range: {start_date} to {end_date}</p>
+            <p>Records found: 0</p>
+            <script>window.close();</script>
+            </body></html>
+            """, 404)
 
         si = io.StringIO()
         cw = csv.writer(si)
@@ -2233,7 +2289,7 @@ def export_csv():
 
         for row in data:
             cw.writerow([
-                row[0].isoformat(),
+                row[0].isoformat() if row[0] else '',
                 row[1] or 0,
                 row[2] or 0,
                 row[3] or 0,
@@ -2246,12 +2302,19 @@ def export_csv():
         output.headers["Content-Disposition"] = f"attachment; filename={filename}"
         output.headers["Content-type"] = "text/csv"
 
-        logging.info(f"CSV exported: {filename}")
+        logging.info(f"CSV exported: {filename} - {len(data)} records")
         return output
 
     except Exception as e:
         logging.error(f"Error exporting CSV: {e}")
-        return jsonify({"error": str(e)}), 500
+        return make_response(f"""
+        <html><body>
+        <h1>Export Error</h1>
+        <p>An error occurred while exporting data</p>
+        <p>Details: {str(e)}</p>
+        <script>window.close();</script>
+        </body></html>
+        """, 500)
     finally:
         if conn:
             put_db_connection(conn)

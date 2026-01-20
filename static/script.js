@@ -885,7 +885,7 @@ function initializeCharts() {
                         },
                         title: {
                             display: true,
-                            text: 'Time (IST)',
+                            text: 'Time (GMT)',
                             color: chartTextColor,
                             font: {
                                 size: 14,
