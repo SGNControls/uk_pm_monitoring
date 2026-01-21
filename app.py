@@ -2184,7 +2184,6 @@ def export_csv():
     device_id = request.args.get('deviceid')
 
     if not start_date or not end_date:
-        # Return HTML error page instead of JSON for file download
         return make_response(f"""
         <html><body>
         <h1>Export Error</h1>
@@ -2210,13 +2209,10 @@ def export_csv():
         conn = get_db_connection()
         cur = conn.cursor()
 
-        # For demo/testing purposes, temporarily bypass ownership validation
-        # TODO: Remove this bypass in production
+        # Ownership validation (demo bypass)
         try:
-            # Validate device ownership (will fail if not logged in properly during demo)
             cur.execute("SELECT id FROM dust_devices WHERE id = %s AND user_id = %s", (device_id, current_user.id))
             if not cur.fetchone():
-                # For demo purposes, check if device exists at all
                 cur.execute("SELECT id FROM dust_devices WHERE id = %s", (device_id,))
                 if not cur.fetchone():
                     return make_response(f"""
@@ -2227,10 +2223,8 @@ def export_csv():
                     <script>window.close();</script>
                     </body></html>
                     """, 404)
-                # Allow export for demo if device exists (bypass ownership)
                 logging.warning(f"Export allowed for demo purposes - device {device_id} owned by different user")
-        except Exception as e:
-            # If current_user is not available (demo mode), allow export if device exists
+        except Exception:
             cur.execute("SELECT id FROM dust_devices WHERE id = %s", (device_id,))
             if not cur.fetchone():
                 return make_response(f"""
@@ -2243,46 +2237,37 @@ def export_csv():
                 """, 404)
             logging.warning(f"Export allowed for demo purposes - auth bypassed for device {device_id}")
 
-        # Convert date strings to proper PostgreSQL timestamp format
+        # Parse dates
         try:
             start_datetime = datetime.strptime(start_date, '%Y-%m-%d')
-            end_datetime = datetime.strptime(end_date, '%Y-%m-%d')
-            # Set end date to end of day
-            end_datetime = end_datetime.replace(hour=23, minute=59, second=59)
+            end_datetime = datetime.strptime(end_date, '%Y-%m-%d').replace(hour=23, minute=59, second=59)
         except ValueError as e:
             return make_response(f"""
             <html><body>
             <h1>Export Error</h1>
             <p>Error: Invalid date format. Expected YYYY-MM-DD</p>
-            <p>Start date: {start_date}</p>
-            <p>End date: {end_date}</p>
             <p>Details: {str(e)}</p>
             <script>window.close();</script>
             </body></html>
             """, 400)
 
-        # Get sensor data (PM values)
+        # Query sensor data
         cur.execute("""
             SELECT timestamp, pm1, pm2_5, pm4, pm10, tsp
             FROM dust_sensor_data
-            WHERE device_id = %s
-            AND timestamp BETWEEN %s AND %s
+            WHERE device_id = %s AND timestamp BETWEEN %s AND %s
             ORDER BY timestamp ASC
         """, (device_id, start_datetime, end_datetime))
-
         sensor_data = cur.fetchall()
 
-        # Get extended environmental data
+        # Query extended data (without removed fields)
         cur.execute("""
             SELECT timestamp, temperature_c, humidity_percent, pressure_hpa,
-                   voc_ppb, no2_ppb, noise_db, gps_lat, gps_lon, gps_alt_m,
-                   gps_speed_kmh, cloud_cover_percent, lux, uv_index, battery_percent
+                   voc_ppb, no2_ppb, noise_db, gps_lat, gps_lon, lux, uv_index
             FROM dust_extended_data
-            WHERE device_id = %s
-            AND timestamp BETWEEN %s AND %s
+            WHERE device_id = %s AND timestamp BETWEEN %s AND %s
             ORDER BY timestamp ASC
         """, (device_id, start_datetime, end_datetime))
-
         extended_data = cur.fetchall()
 
         if not sensor_data and not extended_data:
@@ -2290,9 +2275,6 @@ def export_csv():
             <html><body>
             <h1>Export Error</h1>
             <p>No data found for the selected date range</p>
-            <p>Device ID: {device_id}</p>
-            <p>Date range: {start_date} to {end_date}</p>
-            <p>Records found: 0</p>
             <script>window.close();</script>
             </body></html>
             """, 404)
@@ -2300,22 +2282,21 @@ def export_csv():
         si = io.StringIO()
         cw = csv.writer(si)
 
-        # CSV headers for comprehensive data
+        # Updated headers (removed unwanted fields)
         headers = [
             "Timestamp", "PM1", "PM2.5", "PM4", "PM10", "TSP",
-            "Temperature_C", "Humidity_%", "Pressure_hPa", "VOC_ppb", "NO2_index",
-            "noise_level_index", "GPS_Lat", "GPS_Lon", "Lux", "UV_Index"
+            "Temperature_C", "Humidity_%", "Pressure_hPa",
+            "VOC_ppb", "NO2_ppb", "Noise_db",
+            "GPS_Lat", "GPS_Lon", "Lux", "UV_Index"
         ]
         cw.writerow(headers)
 
-        # Combine sensor and extended data by timestamp
-        # Create a dictionary to merge data by timestamp
+        # Merge data by timestamp
         data_by_timestamp = {}
 
-        # Add sensor data
         for row in sensor_data:
-            timestamp = row[0].isoformat() if row[0] else ''
-            data_by_timestamp[timestamp] = {
+            ts = row[0].isoformat()
+            data_by_timestamp[ts] = {
                 'pm1': row[1] or 0,
                 'pm2_5': row[2] or 0,
                 'pm4': row[3] or 0,
@@ -2329,28 +2310,21 @@ def export_csv():
                 'noise_db': None,
                 'gps_lat': None,
                 'gps_lon': None,
-                'gps_alt_m': None,
-                'gps_speed_kmh': None,
-                'cloud_cover_percent': None,
                 'lux': None,
-                'uv_index': None,
-                'battery_percent': None
+                'uv_index': None
             }
 
-        # Add extended data
         for row in extended_data:
-            timestamp = row[0].isoformat() if row[0] else ''
-            if timestamp not in data_by_timestamp:
-                data_by_timestamp[timestamp] = {
+            ts = row[0].isoformat()
+            if ts not in data_by_timestamp:
+                data_by_timestamp[ts] = {
                     'pm1': 0, 'pm2_5': 0, 'pm4': 0, 'pm10': 0, 'tsp': 0,
                     'temperature_c': None, 'humidity_percent': None, 'pressure_hpa': None,
                     'voc_ppb': None, 'no2_ppb': None, 'noise_db': None,
-                    'gps_lat': None, 'gps_lon': None, 'gps_alt_m': None, 'gps_speed_kmh': None,
-                    'cloud_cover_percent': None, 'lux': None, 'uv_index': None, 'battery_percent': None
+                    'gps_lat': None, 'gps_lon': None, 'lux': None, 'uv_index': None
                 }
 
-            # Update with extended data
-            data_by_timestamp[timestamp].update({
+            data_by_timestamp[ts].update({
                 'temperature_c': row[1],
                 'humidity_percent': row[2],
                 'pressure_hpa': row[3],
@@ -2359,32 +2333,26 @@ def export_csv():
                 'noise_db': row[6],
                 'gps_lat': row[7],
                 'gps_lon': row[8],
-                'gps_alt_m': row[9],
-                'gps_speed_kmh': row[10],
-                'cloud_cover_percent': row[11],
-                'lux': row[12],
-                'uv_index': row[13],
-                'battery_percent': row[14]
+                'lux': row[9],
+                'uv_index': row[10]
             })
 
-        # Sort by timestamp and write rows
         sorted_timestamps = sorted(data_by_timestamp.keys())
-        for timestamp in sorted_timestamps:
-            row = data_by_timestamp[timestamp]
+        for ts in sorted_timestamps:
+            r = data_by_timestamp[ts]
             cw.writerow([
-                timestamp,
-                row['pm1'], row['pm2_5'], row['pm4'], row['pm10'], row['tsp'],
-                row['temperature_c'], row['humidity_percent'], row['pressure_hpa'],
-                row['voc_ppb'], row['no2_ppb'], row['noise_db'],
-                row['gps_lat'], row['gps_lon'], row['lux'], row['uv_index']
+                ts, r['pm1'], r['pm2_5'], r['pm4'], r['pm10'], r['tsp'],
+                r['temperature_c'], r['humidity_percent'], r['pressure_hpa'],
+                r['voc_ppb'], r['no2_ppb'], r['noise_db'],
+                r['gps_lat'], r['gps_lon'], r['lux'], r['uv_index']
             ])
 
         output = make_response(si.getvalue())
         filename = f"dust_data_{device_id}_{start_date}_to_{end_date}.csv"
         output.headers["Content-Disposition"] = f"attachment; filename={filename}"
-        output.headers["Content-type"] = "text/csv"
+        output.headers["Content-type"] = "text/csv; charset=utf-8"
 
-        logging.info(f"CSV exported: {filename} - {len(data)} records")
+        logging.info(f"CSV exported: {filename} - {len(sorted_timestamps)} records")
         return output
 
     except Exception as e:
@@ -2397,9 +2365,11 @@ def export_csv():
         <script>window.close();</script>
         </body></html>
         """, 500)
+
     finally:
         if conn:
             put_db_connection(conn)
+
 
 @socketio.on('join')
 def handle_join(data):
